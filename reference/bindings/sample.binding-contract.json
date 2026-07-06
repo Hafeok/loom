@@ -1,0 +1,35 @@
+{
+  "intent-ref": "settings-demo",
+  "bindings": [
+    {
+      "node": "tz-field",
+      "step-id": "choose-timezone",
+      "derivation": "derived",
+      "sensor": {
+        "view": "timezone-options",
+        "state-map": {
+          "present": "data-arrived",
+          "empty": "data-empty",
+          "failed": "data-failed"
+        },
+        "slot-data": {
+          "option-list": "rows",
+          "trigger": "selected"
+        }
+      }
+    },
+    {
+      "node": "save-cmd",
+      "step-id": "choose-timezone",
+      "derivation": "derived",
+      "effector": {
+        "command": "set-timezone",
+        "on-event": "activated",
+        "verdict-map": {
+          "admitted": "verdict-admitted",
+          "rejected": "verdict-rejected"
+        }
+      }
+    }
+  ]
+}

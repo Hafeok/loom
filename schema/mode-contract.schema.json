@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Hafeok/loom/schema/mode-contract.schema.json",
+  "title": "LoomModeContract",
+  "description": "The per-component seam between a mode (platform projection, headless runtime) and its adapters (thin framework packaging). Declares the ONLY three surfaces an adapter may touch: the event surface it may dispatch into, the descriptor shape it must render, and the lifecycle handshake. Behavior lives behind this seam in the mode; the adapter may only observe the descriptor, dispatch declared events, and signal lifecycle. Derived from the component's core machine — the event surface is the machine's input alphabet; the descriptor's state field is the machine's state space.",
+  "type": "object",
+  "required": ["component", "machine-ref", "event-surface", "descriptor", "lifecycle"],
+  "additionalProperties": false,
+  "properties": {
+    "component": {
+      "type": "string",
+      "description": "The AIO kind this contract governs (e.g. 'single-select')."
+    },
+    "machine-ref": {
+      "type": "string",
+      "description": "Reference to the core machine this contract projects (e.g. 'single-select@loom-core'). The event-surface and descriptor.state MUST be consistent with that machine."
+    },
+    "event-surface": {
+      "type": "object",
+      "description": "The dispatch-only write path. An adapter may ONLY dispatch events named here; the mode rejects any undeclared event. This is the machine's input alphabet, surfaced as platform-neutral event names. Adapters map native inputs (tap/click/Enter) onto these names.",
+      "required": ["events"],
+      "additionalProperties": false,
+      "properties": {
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "valid-in"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Platform-neutral event name (machine input symbol), e.g. 'trigger-activated', 'data-arrived'."
+              },
+              "valid-in": {
+                "type": "array",
+                "description": "The machine states in which dispatching this event is meaningful. Dispatching outside these states is a no-op the mode absorbs; the adapter is NOT required to gate (the mode owns validity), but the contract declares it so the gallery can drive the machine.",
+                "items": { "type": "string" }
+              },
+              "origin": {
+                "type": "string",
+                "enum": ["user", "data", "system"],
+                "description": "Whether this event originates from user input (adapter maps a native gesture/key), from data resolution (the mode's data binding), or from the system. Adapters wire only 'user' events; 'data'/'system' events are the mode's own."
+              }
+            }
+          }
+        }
+      }
+    },
+    "descriptor": {
+      "type": "object",
+      "description": "The observable read path (mode -> adapter). On every state change the mode emits a descriptor of this shape; the adapter renders it and nothing more. All accessibility properties the adapter applies MUST come from here (platform-specific a11y discharge is authored by the mode and surfaced as descriptor data). The adapter chooses HOW to paint, never WHAT to paint.",
+      "required": ["state-field", "slots", "a11y-fields", "motion-field"],
+      "additionalProperties": false,
+      "properties": {
+        "state-field": {
+          "type": "string",
+          "description": "Name of the descriptor field carrying current machine state. Its value range MUST equal the machine's reachable states (projection + overlay)."
+        },
+        "slots": {
+          "type": "array",
+          "description": "The composition slots the adapter may render for this component, each present-or-absent per state. The adapter renders present slots; it does not decide presence.",
+          "items": {
+            "type": "object",
+            "required": ["name", "present-in"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string" },
+              "present-in": {
+                "type": "array",
+                "description": "Machine states in which this slot is present in the descriptor.",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        },
+        "a11y-fields": {
+          "type": "array",
+          "description": "The accessibility properties the descriptor carries for the adapter to apply verbatim. Names are platform-neutral roles the mode fills with platform-specific values (ARIA on web, traits on iOS, semantics on Android). An adapter applying an a11y attribute NOT sourced from this list is a fidelity violation.",
+          "items": {
+            "type": "object",
+            "required": ["field", "discharges"],
+            "additionalProperties": false,
+            "properties": {
+              "field": { "type": "string", "description": "Descriptor a11y field name, e.g. 'accessible-name', 'role', 'selected', 'expanded'." },
+              "discharges": { "type": "string", "description": "The WCAG criterion this field helps discharge, e.g. '4.1.2-name-role-value'." }
+            }
+          }
+        },
+        "motion-field": {
+          "type": "string",
+          "description": "Name of the descriptor field carrying the active motion (a catalog name + phase, never an animation). The adapter realises the named motion in its idiom or applies the reduced-motion fallback; it does not invent motion."
+        }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "description": "The mount/unmount handshake. The adapter signals when the component enters and leaves the tree so the mode can start and dispose the machine and its subscriptions. The mode tells the adapter nothing about HOW to mount.",
+      "required": ["signals"],
+      "additionalProperties": false,
+      "properties": {
+        "signals": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["mount", "unmount"] },
+          "description": "The lifecycle signals the adapter MUST send. Minimally mount and unmount."
+        }
+      }
+    }
+  }
+}

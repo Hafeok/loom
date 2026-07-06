@@ -1,0 +1,101 @@
+{
+  "projection-states": [
+    "loading",
+    "present",
+    "empty",
+    "failed"
+  ],
+  "transitions": {
+    "loading": {
+      "data-arrived": "present",
+      "data-empty": "empty",
+      "data-failed": "failed"
+    },
+    "failed": {
+      "retry": "loading"
+    }
+  },
+  "overlay": {
+    "gated-on": "present",
+    "states": [
+      "closed",
+      "open"
+    ],
+    "transitions": {
+      "closed": {
+        "trigger-activated": {
+          "to": "open",
+          "motion": "reveal-from-trigger"
+        }
+      },
+      "open": {
+        "option-committed": {
+          "to": "closed",
+          "motion": "dismiss-to-trigger"
+        },
+        "dismissed": {
+          "to": "closed",
+          "motion": "dismiss-to-trigger"
+        },
+        "arrow-key": {
+          "to": "open"
+        }
+      }
+    }
+  },
+  "keyboard-bindings": {
+    "Ref.Listbox": {
+      "trigger-activated": [
+        "Space",
+        "Enter",
+        "click"
+      ],
+      "arrow-key": [
+        "ArrowUp",
+        "ArrowDown"
+      ],
+      "option-committed": [
+        "Enter",
+        "click"
+      ],
+      "dismissed": [
+        "Escape",
+        "click-outside",
+        "blur"
+      ]
+    },
+    "Ref.PickerSheet": {
+      "trigger-activated": [
+        "tap"
+      ],
+      "arrow-key": [
+        "swipe"
+      ],
+      "option-committed": [
+        "tap"
+      ],
+      "dismissed": [
+        "swipe-down",
+        "backdrop-tap"
+      ]
+    },
+    "Ref.MenuTUI": {
+      "trigger-activated": [
+        "Enter"
+      ],
+      "arrow-key": [
+        "j",
+        "k",
+        "ArrowUp",
+        "ArrowDown"
+      ],
+      "option-committed": [
+        "Enter"
+      ],
+      "dismissed": [
+        "Escape",
+        "q"
+      ]
+    }
+  }
+}

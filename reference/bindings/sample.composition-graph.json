@@ -1,0 +1,32 @@
+{
+  "roots": [
+    "screen"
+  ],
+  "nodes": {
+    "screen": {
+      "component": "Ref.Screen",
+      "children": {
+        "main": [
+          "form"
+        ]
+      }
+    },
+    "form": {
+      "component": "Ref.Form",
+      "children": {
+        "fields": [
+          "tz-field"
+        ],
+        "submit": [
+          "save-cmd"
+        ]
+      }
+    },
+    "tz-field": {
+      "kind": "single-select"
+    },
+    "save-cmd": {
+      "kind": "command"
+    }
+  }
+}

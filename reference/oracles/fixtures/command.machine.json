@@ -1,0 +1,116 @@
+{
+  "projection-states": [
+    "idle",
+    "pending",
+    "succeeded",
+    "failed"
+  ],
+  "state-source": "domain-verdict",
+  "binds-seam": "build-seam:VerdictEvent",
+  "transitions": {
+    "idle": {
+      "activated": "pending"
+    },
+    "pending": {
+      "verdict-admitted": "succeeded",
+      "verdict-rejected": "failed"
+    },
+    "succeeded": {
+      "reset": "idle"
+    },
+    "failed": {
+      "retry": "pending",
+      "reset": "idle"
+    }
+  },
+  "gate": {
+    "name": "disabled",
+    "blocks": [
+      "activated"
+    ],
+    "note": "a disabled command is unactivatable; the gate suppresses the only entry transition, so no pending request can be issued while disabled"
+  },
+  "overlay": {
+    "gated-on": "any",
+    "states": [
+      "unfocused",
+      "focused"
+    ],
+    "transitions": {
+      "unfocused": {
+        "focus-entered": {
+          "to": "focused",
+          "motion": "none"
+        }
+      },
+      "focused": {
+        "focus-left": {
+          "to": "unfocused",
+          "motion": "none"
+        }
+      }
+    }
+  },
+  "motion-on-state": {
+    "pending": {
+      "motion": "defer-expectation",
+      "note": "in-place busy indicator; sets expectation without implying determinate progress"
+    },
+    "succeeded": {
+      "motion": "settle-in",
+      "note": "confirms the value action landed"
+    },
+    "failed": {
+      "motion": "settle-in",
+      "note": "surfaces the rejection; paired with a live-region announcement"
+    }
+  },
+  "keyboard-bindings": {
+    "Ref.Button": {
+      "activated": [
+        "Space",
+        "Enter",
+        "click"
+      ],
+      "focus-entered": [
+        "Tab"
+      ],
+      "reset": [
+        "programmatic"
+      ],
+      "retry": [
+        "Space",
+        "Enter",
+        "click"
+      ]
+    },
+    "Ref.ButtonTouch": {
+      "activated": [
+        "tap"
+      ],
+      "focus-entered": [
+        "focus"
+      ],
+      "reset": [
+        "programmatic"
+      ],
+      "retry": [
+        "tap"
+      ]
+    },
+    "Ref.ActionTUI": {
+      "activated": [
+        "Enter"
+      ],
+      "focus-entered": [
+        "Tab"
+      ],
+      "reset": [
+        "programmatic"
+      ],
+      "retry": [
+        "Enter"
+      ]
+    }
+  }
+}

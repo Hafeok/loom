@@ -1,0 +1,26 @@
+{
+  "intent-ref": "settings-demo",
+  "intent-hash": "sha256:settings-demo",
+  "page-graph": { "nodes": [{ "id": "settings" }], "edges": [], "roots": ["settings"] },
+  "ui-steps": [
+    { "step-id": "choose-timezone",
+      "projection": { "view": "timezone-options" },
+      "commands": ["set-timezone"],
+      "projection-states": ["loading", "present", "empty", "failed"],
+      "wcag-criteria": [ { "criterion": "2.1.1-keyboard", "mode": "machine" } ]
+    }
+  ],
+  "aios-in-context": [
+    { "aio": "tz-field", "contexts": [ { "platform": "web", "form-factor": "desktop", "interaction-class": "gui" } ] },
+    { "aio": "save-cmd", "contexts": [ { "platform": "web", "form-factor": "desktop", "interaction-class": "gui" } ] }
+  ],
+  "producer-extension": {
+    "aio-kinds": { "tz-field": "single-select", "save-cmd": "command" },
+    "composition-graph": { "roots": ["screen"], "nodes": {
+      "screen": { "component": "Ref.Screen", "children": { "main": ["form"] } },
+      "form":   { "component": "Ref.Form", "children": { "fields": ["tz-field"], "submit": ["save-cmd"] } },
+      "tz-field": { "kind": "single-select" },
+      "save-cmd": { "kind": "command" }
+    }}
+  }
+}

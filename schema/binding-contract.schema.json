@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Hafeok/loom/schema/binding-contract.schema.json",
+  "title": "LoomBindingContract",
+  "description": "The wiring of reified components to the domain: per composition-graph leaf, which View (projection) feeds its sensor side and which Command its effector side. DERIVED from the What (the owning UI step already names its projection and commands), never invented; authored only where derivation is ambiguous, and then checked against the step's declarations. The gallery and the product implement THIS SAME contract behind the same driver interface — fixture drivers vs live drivers — which is what makes 'what we verify is what we build' literal.",
+  "type": "object",
+  "required": ["intent-ref", "bindings"],
+  "additionalProperties": false,
+  "properties": {
+    "intent-ref": { "type": "string", "description": "The UIIntent these bindings serve." },
+    "bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["node", "step-id"],
+        "additionalProperties": false,
+        "properties": {
+          "node": { "type": "string", "description": "Composition-graph leaf node id." },
+          "step-id": { "type": "string", "description": "The owning UI step (whose declarations bound what may be bound)." },
+          "derivation": {
+            "type": "string",
+            "enum": ["derived", "authored"],
+            "description": "'derived': computed from the What unambiguously. 'authored': a human chose among alternatives the What left open (e.g. a step offering several commands) — still checked against the step's declarations."
+          },
+          "sensor": {
+            "type": "object",
+            "description": "The View that feeds this component's data-origin events and slot data.",
+            "required": ["view", "state-map"],
+            "additionalProperties": false,
+            "properties": {
+              "view": { "type": "string", "description": "The projection/read-model the owning step projects." },
+              "state-map": {
+                "type": "object",
+                "description": "Projection state -> machine data-origin event. Every state the projection can exhibit MUST map (or be the initial state); every mapped event MUST exist in the machine.",
+                "additionalProperties": { "type": "string" }
+              },
+              "slot-data": {
+                "type": "object",
+                "description": "Descriptor slot -> projection field feeding it (e.g. option-list <- rows).",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          },
+          "effector": {
+            "type": "object",
+            "description": "The Command this component issues and the verdict wiring back.",
+            "required": ["command", "on-event", "verdict-map"],
+            "additionalProperties": false,
+            "properties": {
+              "command": { "type": "string", "description": "A command the owning step declares." },
+              "on-event": { "type": "string", "description": "The machine event whose firing issues the command (e.g. activated)." },
+              "verdict-map": {
+                "type": "object",
+                "description": "Build-seam VerdictEvent outcome -> machine event (admitted -> verdict-admitted, rejected -> verdict-rejected).",
+                "additionalProperties": { "type": "string" }
+              }
+            }
+          },
+          "content": {
+            "type": "object",
+            "description": "Content-reference keys -> descriptor slots (empty/error messages etc.), resolved by the How's content store.",
+            "additionalProperties": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

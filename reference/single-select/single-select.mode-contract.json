@@ -1,0 +1,38 @@
+{
+  "component": "single-select",
+  "machine-ref": "single-select@loom-core",
+  "event-surface": {
+    "events": [
+      { "name": "data-arrived",      "valid-in": ["loading"],          "origin": "data" },
+      { "name": "data-empty",        "valid-in": ["loading"],          "origin": "data" },
+      { "name": "data-failed",       "valid-in": ["loading"],          "origin": "data" },
+      { "name": "retry",             "valid-in": ["failed"],           "origin": "user" },
+      { "name": "trigger-activated", "valid-in": ["present:closed"],   "origin": "user" },
+      { "name": "option-committed",  "valid-in": ["present:open"],     "origin": "user" },
+      { "name": "dismissed",         "valid-in": ["present:open"],     "origin": "user" },
+      { "name": "arrow-key",         "valid-in": ["present:open"],     "origin": "user" },
+      { "name": "focus-entered",     "valid-in": ["*"],                "origin": "user" },
+      { "name": "focus-left",        "valid-in": ["*"],                "origin": "user" }
+    ]
+  },
+  "descriptor": {
+    "state-field": "state",
+    "slots": [
+      { "name": "trigger",       "present-in": ["loading", "present:closed", "present:open", "empty", "failed"] },
+      { "name": "spinner",       "present-in": ["loading"] },
+      { "name": "option-list",   "present-in": ["present:open"] },
+      { "name": "empty-message", "present-in": ["empty"] },
+      { "name": "error-message", "present-in": ["failed"] }
+    ],
+    "a11y-fields": [
+      { "field": "role",           "discharges": "4.1.2-name-role-value" },
+      { "field": "accessible-name","discharges": "4.1.2-name-role-value" },
+      { "field": "expanded",       "discharges": "4.1.2-name-role-value" },
+      { "field": "selected",       "discharges": "4.1.2-name-role-value" },
+      { "field": "live-region",    "discharges": "4.1.3-status-messages" },
+      { "field": "focus-target",   "discharges": "2.4.3-focus-order" }
+    ],
+    "motion-field": "active-motion"
+  },
+  "lifecycle": { "signals": ["mount", "unmount"] }
+}
