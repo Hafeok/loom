@@ -1,0 +1,173 @@
+id: e-binding-contract-decider
+decides_for: e-binding-contract
+handles:
+- cmd-derive-bindings
+- cmd-author-binding
+- cmd-check-binding
+emits:
+- ev-binding-derived
+- ev-binding-needs-authoring
+- ev-binding-authored
+- ev-binding-checked
+- ev-binding-rejected
+evolves_from:
+- ev-binding-derived
+- ev-binding-needs-authoring
+- ev-binding-authored
+- ev-binding-checked
+- ev-binding-rejected
+rejects:
+- inv-intent-ref-present
+- inv-composition-present
+- inv-authoring-only-on-ambiguity
+- inv-binding-resolved
+- inv-leaf-matches
+- inv-declaration-chosen
+logic:
+  initial:
+    status: "none"
+    leaf: ""
+  evolve:
+  - on: ev-binding-derived
+    set:
+      status: derived
+      leaf: '=event["leaf"]'
+  - on: ev-binding-needs-authoring
+    set:
+      status: needs-authoring
+      leaf: '=event["leaf"]'
+  - on: ev-binding-authored
+    set:
+      status: authored
+  - on: ev-binding-checked
+    set:
+      status: checked
+  - on: ev-binding-rejected
+    set:
+      status: rejected
+  decide:
+  - on: cmd-derive-bindings
+    guards:
+    - expr: 'command["intent-ref"] != ""'
+      else_reject: inv-intent-ref-present
+    - expr: 'command["composition-graph"] != ""'
+      else_reject: inv-composition-present
+    emit:
+    - event: ev-binding-derived
+  - on: cmd-author-binding
+    guards:
+    - expr: 'state["status"] == "needs-authoring"'
+      else_reject: inv-authoring-only-on-ambiguity
+    - expr: 'command["leaf"] == state["leaf"]'
+      else_reject: inv-leaf-matches
+    - expr: 'command["chosen-declaration"] != ""'
+      else_reject: inv-declaration-chosen
+    emit:
+    - event: ev-binding-authored
+      with:
+        leaf: '=command["leaf"]'
+        chosen-declaration: '=command["chosen-declaration"]'
+  - on: cmd-check-binding
+    guards:
+    - expr: 'state["status"] in ["derived", "authored"]'
+      else_reject: inv-binding-resolved
+    - expr: 'command["leaf"] == state["leaf"]'
+      else_reject: inv-leaf-matches
+    emit:
+    - event: ev-binding-checked
+      with:
+        leaf: '=command["leaf"]'
+scenarios:
+- name: derivation resolves a leaf binding from the composition graph
+  given: []
+  when:
+    command: cmd-derive-bindings
+    with:
+      intent-ref: intent-cart-42
+      composition-graph: cg-cart-42
+  then:
+    emit:
+    - event: ev-binding-derived
+- name: derivation without a composition graph is refused
+  given: []
+  when:
+    command: cmd-derive-bindings
+    with:
+      intent-ref: intent-cart-42
+      composition-graph: ""
+  then:
+    reject: inv-composition-present
+- name: authoring resolves a declared ambiguity
+  given:
+  - event: ev-binding-needs-authoring
+    with:
+      leaf: leaf-cart-total
+      ambiguity: two candidate views
+      candidates: v-cart-total, v-cart-summary
+  when:
+    command: cmd-author-binding
+    with:
+      leaf: leaf-cart-total
+      chosen-declaration: v-cart-total
+  then:
+    emit:
+    - event: ev-binding-authored
+      with:
+        leaf: leaf-cart-total
+        chosen-declaration: v-cart-total
+- name: authoring an unambiguous binding is refused — ambiguity only
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  when:
+    command: cmd-author-binding
+    with:
+      leaf: leaf-cart-total
+      chosen-declaration: v-cart-summary
+  then:
+    reject: inv-authoring-only-on-ambiguity
+- name: a derived binding passes its coverage checks
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  when:
+    command: cmd-check-binding
+    with:
+      leaf: leaf-cart-total
+  then:
+    emit:
+    - event: ev-binding-checked
+      with:
+        leaf: leaf-cart-total
+- name: checking an unresolved (ambiguous) binding is refused
+  given:
+  - event: ev-binding-needs-authoring
+    with:
+      leaf: leaf-cart-total
+      ambiguity: two candidate views
+      candidates: v-cart-total, v-cart-summary
+  when:
+    command: cmd-check-binding
+    with:
+      leaf: leaf-cart-total
+  then:
+    reject: inv-binding-resolved
+- name: checking a different leaf than this contract's is refused
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  when:
+    command: cmd-check-binding
+    with:
+      leaf: leaf-cart-badge
+  then:
+    reject: inv-leaf-matches

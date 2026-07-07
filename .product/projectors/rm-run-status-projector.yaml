@@ -1,0 +1,9 @@
+id: rm-run-status-projector
+projects_for: rm-run-status
+folds:
+- ev-run-started
+- ev-intent-rejected
+- ev-check-verdict-recorded
+- ev-report-emitted
+over:
+- e-reification-run

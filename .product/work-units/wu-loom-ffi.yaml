@@ -1,0 +1,22 @@
+id: wu-loom-ffi
+schema: 'Rust crate: loom-ffi — UniFFI interface definition (udl) + staticlib build for iOS/Android'
+prompt: 'Implement crates/loom-ffi: the UniFFI interface (udl) declaring the LoomComponent handle per pat-ffi-handle — dispatch(event), descriptor subscription callback, mount, unmount; no other method. Build as staticlib for the XCFramework (SwiftPM, r-dist-swiftpm) and AAR (Maven, r-dist-maven) distributions. The udl is diffed against the mode-contract surface list in CI (ffi-surface-review). Version locked to core (p-one-version, release-version-lockstep-check).'
+model: code
+context:
+  derived_from:
+  - how:if-mode-contract
+  - how:d-one-runtime
+  - domain:e-component-instance
+  frozen: true
+produces:
+  artifact: 'Rust crate: UniFFI udl + staticlib packaging'
+  path: crates/loom-ffi/src/loom.udl
+trace:
+  what: sys-loom-runtime native surface
+  behaviour: carries the same mode-contract surfaces to loom-ios and loom-android
+  why:
+  - d-one-runtime
+  - p-ffi-surface-minimal
+  - p-one-version
+  - pat-ffi-handle
+  structure: loom-ffi layer of loom-app (phase 6)

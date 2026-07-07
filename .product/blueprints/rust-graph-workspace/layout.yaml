@@ -1,0 +1,9 @@
+version: '0.1'
+blueprint: rust-graph-workspace
+allowlist: true
+layout:
+- id: no-orphans
+  rationale: every source file must have a declared, legal home
+  enforces:
+  - provable-layout
+  no_orphans: src/**

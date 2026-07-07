@@ -1,0 +1,20 @@
+id: handler-e-token-graph
+schema: 'Rust module: token-graph views for loom-graph — resolution walk, cycle/dangling detection, criteria-discharge rows, blast-radius query'
+prompt: 'Implement the e-token-graph slice in crates/loom-graph: typed views over loom:g/tokens per pat-typed-row-view — the three tiers with resolution edges (every component token resolves through the semantic tier to a primitive, no cycle: incoherence fails validation per loom-spec §2.1), criteria-discharge records, and the §2.2/§2.4 blast-radius query (property-path traversal through loom:binds* to every reification row plus touched discharge records) backing rm-blast-radius. Queries live under queries/ (s-queries-maintained).'
+model: code
+context:
+  derived_from:
+  - domain:e-token-graph
+  frozen: true
+  hash: sha256:c11cdf41e6400427b0fbc8806ccd6c04c021354cde0ab17d8ba25682ed23a089
+produces:
+  artifact: 'Rust module: token-graph typed views + blast-radius query wiring'
+  path: crates/loom-graph/src/tokens.rs
+trace:
+  what: e-token-graph
+  behaviour: loaded via cmd-load-bundle / fed by ev-palette-ingested; projected by rm-blast-radius and rm-catalog-inventory
+  why:
+  - d-graph-primary
+  - p-views-over-graph
+  - pat-typed-row-view
+  structure: loom-graph layer of loom-app

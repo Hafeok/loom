@@ -1,0 +1,102 @@
+id: rm-reification-report-projector
+projects_for: rm-reification-report
+folds:
+- ev-run-started
+- ev-intent-rejected
+- ev-check-verdict-recorded
+- ev-report-emitted
+over:
+- e-reification-run
+logic:
+  initial:
+    status: empty
+    checks: 0
+    verdict: ""
+  apply:
+  - on: ev-run-started
+    set:
+      status: loading
+      checks: 0
+      verdict: ""
+  - on: ev-intent-rejected
+    set:
+      status: failed
+  - on: ev-check-verdict-recorded
+    set:
+      status: loading
+      checks: "=view.checks + 1"
+  - on: ev-report-emitted
+    set:
+      status: present
+      verdict: '=event["verdict"]'
+scenarios:
+- name: no run yet reports empty
+  given: []
+  then:
+    status: empty
+    checks: 0
+    verdict: ""
+- name: an active run is loading — the report is not yet constructible
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  then:
+    status: loading
+    checks: 0
+    verdict: ""
+- name: each recorded verdict appends to the run while it stays loading
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  - event: ev-check-verdict-recorded
+    with:
+      run-id: intent-cart-42#run
+      check: view-legality
+      findings: "0"
+      outcome: pass
+  - event: ev-check-verdict-recorded
+    with:
+      run-id: intent-cart-42#run
+      check: machine-equivalence
+      findings: "0"
+      outcome: pass
+  then:
+    status: loading
+    checks: 2
+    verdict: ""
+- name: the emitted report makes the view present with its verdict
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  - event: ev-check-verdict-recorded
+    with:
+      run-id: intent-cart-42#run
+      check: view-legality
+      findings: "0"
+      outcome: pass
+  - event: ev-report-emitted
+    with:
+      run-id: intent-cart-42#run
+      verdict: reified
+      reified-count: 12
+      unreifiable-count: 0
+  then:
+    status: present
+    checks: 1
+    verdict: reified
+- name: a rejected intent fails the report
+  given:
+  - event: ev-intent-rejected
+    with:
+      run-id: intent-cart-42#run
+      violations: intent failed ui-intent.schema.json
+  then:
+    status: failed
+    checks: 0
+    verdict: ""

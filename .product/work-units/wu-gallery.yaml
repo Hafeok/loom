@@ -1,0 +1,22 @@
+id: wu-gallery
+schema: 'React app: loom-web-react-gallery — pages generated from the store; FixtureDriver; state-driver per mode-contract'
+prompt: 'Implement apps/loom-web-react-gallery: the conformance gallery realising ui-gallery-index and ui-component-stage under ar-gallery. Three disciplines: (1) reference data lives in core — pages render core''s reference bundles through the adapter and the FixtureDriver, inventing nothing; (2) pages are generated — a SPARQL query over loom:g/mode-contracts + the reference composition-graphs yields the page list and each component''s state-driver (which events, valid in which states); (3) components are driven only through the mode-contract — declared events dispatched, descriptors rendered. Every reference composition renders through the derived bindings; every machine state is reachable through dispatched events only; the adapter-fidelity scan runs green. If the gallery must reach past the three surfaces to show a state, the mode-contract is incomplete — fail the build, not the discipline.'
+model: code
+context:
+  derived_from:
+  - domain:ui-gallery-index
+  - domain:ui-component-stage
+  - domain:ar-gallery
+  - how:if-driver-pair
+  frozen: true
+produces:
+  artifact: 'React app: the generated conformance gallery'
+  path: apps/loom-web-react-gallery/src/main.tsx
+trace:
+  what: sys-gallery (f-gallery-walkthrough)
+  behaviour: t-gallery-user → cmd-dispatch-event → ev-transition-fired → rm-descriptor over reference data via FixtureDriver
+  why:
+  - d-machines-as-data
+  - p-machine-from-graph
+  - p-shim-no-state
+  structure: app above loom-web-react (phase 5 gate)

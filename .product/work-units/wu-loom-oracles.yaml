@@ -1,0 +1,23 @@
+id: wu-loom-oracles
+schema: 'Rust crate: loom-oracles — the six §7 judges as pure functions, dual-run against loom-spec''s Python reference on shared vectors'
+prompt: 'Implement crates/loom-oracles: the §7 checks in Rust per pat-oracle-pair — leaf completeness (§7.1), composition join (§7.2: slot admissibility, cardinality, acyclicity), view completeness (§7.3: rootedness, reachability, leaf resolution, bidirectional coverage, node-disjoint views), machine equivalence (§7.4: S ⊆ M and every m ∈ M∖S is overlay), criteria discharge (§7.5), motion (§7.6). Each oracle: a queries/ fact-gatherer + a pure judge fn + a dual-judge vector test running loom-spec''s Python reference beside it. A disagreement is INCOHERENCE and fails CI (ci-incoherence-gate) — never silently fixed on one side. Verdict composition per §7.7: computed, never asserted.'
+model: code
+context:
+  derived_from:
+  - how:d-dual-encoding
+  - how:r-vectors
+  - how:s-vectors-shared
+  - domain:e-reification-run
+  frozen: true
+produces:
+  artifact: 'Rust crate: the six §7 oracle judges + dual-judge vector suite'
+  path: crates/loom-oracles/src/lib.rs
+trace:
+  what: the §7 checks inside f-reification
+  behaviour: cmd-record-verdict runs these; ev-check-verdict-recorded carries their findings
+  why:
+  - d-dual-encoding
+  - p-vectors-equivalence
+  - p-queries-fetch-oracles-judge
+  - pat-oracle-pair
+  structure: loom-oracles layer of loom-app (phase 2)

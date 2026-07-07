@@ -1,0 +1,107 @@
+id: rm-descriptor-projector
+projects_for: rm-descriptor
+folds:
+- ev-mounted
+- ev-transition-fired
+- ev-event-rejected
+- ev-unmounted
+over:
+- e-component-instance
+logic:
+  initial:
+    status: empty
+    state: ""
+    motion: none
+    rejections: 0
+  apply:
+  - on: ev-mounted
+    set:
+      status: present
+      state: '=event["initial-state"]'
+      motion: none
+  - on: ev-transition-fired
+    set:
+      status: present
+      state: '=event["to-state"]'
+      motion: '=event["motion"]'
+  - on: ev-event-rejected
+    set:
+      rejections: "=view.rejections + 1"
+  - on: ev-unmounted
+    set:
+      status: empty
+      state: ""
+      motion: none
+scenarios:
+- name: no mounted instance means no descriptor
+  given: []
+  then:
+    status: empty
+    state: ""
+    motion: none
+    rejections: 0
+- name: mounting emits a descriptor for the initial state
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  then:
+    status: present
+    state: initial
+    motion: none
+    rejections: 0
+- name: a fired transition updates the descriptor with its motion
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  - event: ev-transition-fired
+    with:
+      instance-id: single-select
+      event: open
+      origin: keyboard
+      from-state: initial
+      to-state: open
+      motion: expand
+  then:
+    status: present
+    state: open
+    motion: expand
+    rejections: 0
+- name: a rejected event never changes the rendered state
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  - event: ev-event-rejected
+    with:
+      instance-id: single-select
+      event: scroll
+      reason: not on the event surface
+      current-state: initial
+  then:
+    status: present
+    state: initial
+    motion: none
+    rejections: 1
+- name: unmounting withdraws the descriptor
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  - event: ev-unmounted
+    with:
+      instance-id: single-select
+  then:
+    status: empty
+    state: ""
+    motion: none
+    rejections: 0

@@ -1,0 +1,23 @@
+id: wu-loom-cli
+schema: 'Rust binary: loom — subcommands load | validate | ingest | reify | report | query'
+prompt: 'Implement crates/loom-cli: the `loom` binary realising if-cli — load (bundle → SHACL gate → named graph), validate (run shapes/vectors over the store), ingest (palette + mapping → §2.5 gate → ingestion report), reify (intent → run graph → oracles → canonical report, per f-reification), report (re-emit or inspect a past run''s report from its persistent run graph), query (the §8 queries: blast-radius, completeness, ...). JSON in/out on the seam subcommands; exit codes distinguish rejection kinds. This is the product-cli-facing surface; its work units under Kiln will later declare effect:filesystem-write scopes (noted, not implemented).'
+model: code
+context:
+  derived_from:
+  - how:if-cli
+  - how:if-reification-seam
+  - domain:e-reification-run
+  - domain:e-ingestion
+  - domain:e-bundle
+  frozen: true
+produces:
+  artifact: 'Rust binary crate: the loom CLI'
+  path: crates/loom-cli/src/main.rs
+trace:
+  what: sys-loom-cli
+  behaviour: carries f-bundle-load, f-token-ingestion, f-reification, f-binding-derivation, f-binding-authoring
+  why:
+  - d-graph-primary
+  - d-canonical-contracts
+  - p-seam-schema-validated
+  structure: loom-cli layer of loom-app (phases 2–4)

@@ -1,0 +1,21 @@
+id: wu-adapter-fidelity-scan
+schema: 'TS tool: adapter-fidelity scanner — structural scan asserting an adapter touches only the three surfaces'
+prompt: 'Implement tools/adapter-fidelity-ts: the per-framework structural scanner (loom-implementation §5, TS first per phase 5''s gate). Assert over adapter source: every reference to the mode instance is one of {subscribe/observe, render(descriptor), dispatch(event), mount/unmount}; every accessibility attribute set traces to a descriptor a11y-field; no local state shadows a machine state; no state conditional outside rendering; no transition invocation. A violation fails the check. This is the adapter-tier analogue of machine_equivalence: it does not verify the adapter does the right thing — it verifies the adapter cannot do the wrong thing. The checklist is normative; this implementation is the TS reference.'
+model: code
+context:
+  derived_from:
+  - how:p-shim-no-state
+  - how:p-ffi-surface-minimal
+  - domain:e-mode-contract
+  frozen: true
+produces:
+  artifact: 'TS tool: the adapter-fidelity structural scanner (reference implementation)'
+  path: tools/adapter-fidelity-ts/src/scan.ts
+trace:
+  what: the adapter→mode conformance seam
+  behaviour: 'CI gate: adapter-fidelity-scan green is part of the phase-5 deliverable'
+  why:
+  - d-one-runtime
+  - p-shim-no-state
+  - p-ffi-surface-minimal
+  structure: tools/ beside the packages (phase 5 gate)

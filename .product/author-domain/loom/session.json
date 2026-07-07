@@ -1,0 +1,1539 @@
+{
+  "product": "loom",
+  "participants": [],
+  "graph": {
+    "contexts": [
+      {
+        "id": "ctx-catalog",
+        "label": "Design-System Catalog",
+        "glossary": [
+          "bundle — a loadable artifact set per artifact class, validated on load",
+          "token graph — primitive → semantic → component, resolution acyclic",
+          "machine — a component's projection layer + gated interaction overlay",
+          "reification row — (AIO-kind, platform, form-factor, interaction-class) → component, exactly-once",
+          "motion entry — named meaning + duration + easing + reduced-motion fallback",
+          "mode-contract — a component's three adapter surfaces, derived from its machine"
+        ]
+      },
+      {
+        "id": "ctx-ingestion",
+        "label": "Token Ingestion",
+        "glossary": [
+          "external token set — primitive values in the source's own vocabulary, opaque to Loom",
+          "mapping — semantic role ← external token, the checkable seam artifact",
+          "criterion regression — a mapped palette failing a §2.3 token-tier criterion; grounds for rejection",
+          "ingested/rejected — the ingestion verdict, produced before and separate from reification"
+        ]
+      },
+      {
+        "id": "ctx-reification",
+        "label": "Reification",
+        "glossary": [
+          "UIIntent — the canonical inbound message (aios-in-context, page-graph, producer-extension carrying the composition-graph)",
+          "oracle — a deterministic §7 check producing a verdict with a basis",
+          "run graph — loom:g/runs/<id>, the persistent PROV-O record of one reification",
+          "ReificationReport — the canonical outbound message; verdict built | partial | rejected, computed by §7.7"
+        ]
+      },
+      {
+        "id": "ctx-runtime",
+        "label": "Machine Runtime",
+        "glossary": [
+          "component instance — one mounted machine with its current projection + overlay state",
+          "dispatch — the adapter's only write path; undeclared events are rejected",
+          "descriptor — the read-only render contract: state, slots, a11y fields, active motion",
+          "mode — the compiled runtime + a thin platform shim (event capture in, a11y/motion realisation out)",
+          "adapter — thin framework packaging over the three surfaces; carries no behaviour"
+        ]
+      },
+      {
+        "id": "ctx-binding",
+        "label": "Binding",
+        "glossary": [
+          "binding contract — the per-leaf derived/authored wiring, schema-checkable",
+          "state-map — projection state → machine data event (present → data-arrived, ...)",
+          "verdict-map — VerdictEvent → machine event (admitted → verdict-admitted, ...)",
+          "needs-authoring — the annotation floor: ambiguity surfaced, never guessed",
+          "driver pair — ProjectionDriver + CommandDriver; FixtureDriver (gallery) and LiveDriver (product) are the two conforming implementations"
+        ]
+      }
+    ],
+    "entities": [
+      {
+        "id": "e-bundle",
+        "label": "Artifact Bundle",
+        "context": "ctx-catalog",
+        "definition": "A loadable artifact set for one artifact class (token bundle, machine catalog, reification table, motion catalog, mode-contracts), targeting one named graph. It enters the store only after SHACL validation on load — fail-closed; its load status and provenance are part of the catalog's record.",
+        "identity": "bundle id (artifact class + source + version)",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "artifact-class",
+            "type": "string"
+          },
+          {
+            "name": "named-graph",
+            "type": "string"
+          },
+          {
+            "name": "format",
+            "type": "string"
+          },
+          {
+            "name": "shacl-status",
+            "type": "string"
+          },
+          {
+            "name": "source",
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-token-graph",
+        "label": "Token Graph",
+        "context": "ctx-catalog",
+        "definition": "The three-tier token graph (primitive → semantic → component) with its resolution edges and criteria-discharge records. Every component token must resolve through the semantic tier to a primitive with no cycle; a cycle or dangling reference is an incoherence that fails validation (loom-spec §2).",
+        "identity": "distribution version",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "version",
+            "type": "string"
+          },
+          {
+            "name": "criteria-discharges",
+            "type": "string"
+          },
+          {
+            "name": "resolution-status",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-token",
+        "label": "Token",
+        "context": "ctx-catalog",
+        "definition": "One node of the token graph: a primitive (raw value, no role), a semantic (a named role binding exactly one primitive or semantic), or a component token (a component's binding of a semantic). The tier determines its reference rules; blast radius of a token change is computable by query (§2.2).",
+        "identity": "token name within its tier",
+        "is_aggregate_root": false,
+        "attributes": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "tier",
+            "type": "string"
+          },
+          {
+            "name": "value",
+            "type": "string"
+          },
+          {
+            "name": "binds",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-machine",
+        "label": "Component Machine",
+        "context": "ctx-catalog",
+        "definition": "A component's declared state machine: a projection layer over the UI step's projection-states plus an interaction overlay whose transitions are gated on declared projection states. Every interaction event has a keyboard binding in every keyboarded context (2.1.1 structural); transitions opening transient surfaces declare focus post-conditions; every transition carrying motion names a catalog entry or declares none. The machine is data — the runtime interprets it from the graph.",
+        "identity": "component name",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "component",
+            "type": "string"
+          },
+          {
+            "name": "projection-states",
+            "type": "string"
+          },
+          {
+            "name": "overlay-states",
+            "type": "string"
+          },
+          {
+            "name": "gates",
+            "type": "string"
+          },
+          {
+            "name": "side",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-reification-row",
+        "label": "Reification Row",
+        "context": "ctx-catalog",
+        "definition": "One row of the reification table: (AIO-kind, platform, form-factor, interaction-class) → a component (CIO). Each AIO×context resolves to exactly one component — two rows matching the same pair is an ambiguity and fails validation; multiple rows for the same AIO kind across contexts is how one composition adapts responsively without forking (§3.1–3.2).",
+        "identity": "(aio-kind, platform, form-factor, interaction-class)",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "aio-kind",
+            "type": "string"
+          },
+          {
+            "name": "platform",
+            "type": "string"
+          },
+          {
+            "name": "form-factor",
+            "type": "string"
+          },
+          {
+            "name": "interaction-class",
+            "type": "string"
+          },
+          {
+            "name": "cio",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-motion-entry",
+        "label": "Motion Catalog Entry",
+        "context": "ctx-catalog",
+        "definition": "One named entry of the motion catalog: what it communicates, duration, easing, and a mandatory reduced-motion fallback satisfying WCAG 2.3.3. Machine transitions reference entries by name only — never ad-hoc animation; an entry without a fallback fails validation (loom-spec §5).",
+        "identity": "catalog name",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "communicates",
+            "type": "string"
+          },
+          {
+            "name": "duration",
+            "type": "string"
+          },
+          {
+            "name": "easing",
+            "type": "string"
+          },
+          {
+            "name": "reduced-motion-fallback",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-mode-contract",
+        "label": "Mode-Contract",
+        "context": "ctx-catalog",
+        "definition": "Per component, the only three surfaces an adapter may touch: the event surface (the machine's input alphabet, dispatch-only, each event carrying an origin user|data|system), the descriptor shape (state range, slots, a11y fields each tied to the criterion it discharges, active motion), and the mount/unmount lifecycle. Derived from — and checked consistent with — the component's core machine: no phantom events, no unreported states (loom-implementation §3.4).",
+        "identity": "component name",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "component",
+            "type": "string"
+          },
+          {
+            "name": "event-surface",
+            "type": "string"
+          },
+          {
+            "name": "descriptor-states",
+            "type": "string"
+          },
+          {
+            "name": "lifecycle",
+            "type": "string"
+          },
+          {
+            "name": "consistency-status",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-ingestion",
+        "label": "Palette Ingestion",
+        "context": "ctx-ingestion",
+        "definition": "One attempt to adopt an external palette: the external token set (opaque source vocabulary), the declared mapping onto Loom's semantic roles, and the verdict. The three checks run in order — mapping completeness (unmapped-role), resolution (unresolved-source), criteria re-run (criterion-regression) — fail-closed: a rejected palette never enters the token graph, so any palette that reaches reification has already passed every token-tier criterion.",
+        "identity": "ingestion id",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "external-token-set",
+            "type": "string"
+          },
+          {
+            "name": "verdict",
+            "type": "string"
+          },
+          {
+            "name": "rejection-reason",
+            "type": "string"
+          },
+          {
+            "name": "rejection-basis",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-reification-run",
+        "label": "Reification Run",
+        "context": "ctx-reification",
+        "definition": "One reification of a UIIntent: the intent as a PROV-O Entity, the run as an Activity, every §7 check verdict written to the run graph as it is produced, and the ReificationReport constructed from the graph — never assembled from memory. The run graph persists, so \"why was this AIO unreifiable last Tuesday\" is a query.",
+        "identity": "run id (loom:g/runs/&lt;id&gt;)",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "intent-ref",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": "string"
+          },
+          {
+            "name": "verdict",
+            "type": "string"
+          },
+          {
+            "name": "started-at",
+            "type": "date"
+          }
+        ]
+      },
+      {
+        "id": "e-component-instance",
+        "label": "Component Instance",
+        "context": "ctx-runtime",
+        "definition": "One mounted execution of a component machine: its current projection state, current overlay state, gate status, and active motion. It accepts only events declared on its mode-contract's event surface, rejects everything else, enforces overlay gating and focus post-conditions, and emits a descriptor on every state change. Identical compiled bytes decide every transition on every platform.",
+        "identity": "instance id (one mounted machine)",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "machine-ref",
+            "type": "string"
+          },
+          {
+            "name": "projection-state",
+            "type": "string"
+          },
+          {
+            "name": "overlay-state",
+            "type": "string"
+          },
+          {
+            "name": "mounted",
+            "type": "boolean"
+          },
+          {
+            "name": "active-motion",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "e-binding-contract",
+        "label": "Binding Contract",
+        "context": "ctx-binding",
+        "definition": "Per composition-graph leaf, the wiring between the reified component and the owning UI step's declarations: sensor side binds the step's View with a state-map and slot-data; effector side binds a step-declared Command with a verdict-map over the returning VerdictEvent. Status moves derived | needs-authoring | authored | checked; a binding may reference only what the owning step declares (declaration sourcing), every projection state must be wired (state-map coverage), and both verdicts must be wired (verdict coverage).",
+        "identity": "composition-graph leaf id",
+        "is_aggregate_root": true,
+        "attributes": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "side",
+            "type": "string"
+          },
+          {
+            "name": "view-ref",
+            "type": "string"
+          },
+          {
+            "name": "command-ref",
+            "type": "string"
+          },
+          {
+            "name": "slot-data",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "value_objects": [
+      {
+        "id": "vo-transition",
+        "label": "Transition",
+        "context": "ctx-catalog",
+        "definition": "One edge of a component machine: the event it fires on, source and target states, its projection-state gate (overlay transitions only), its motion reference (a catalog name or explicit none), its keyboard binding per keyboarded context, and — when it opens a transient surface — the focus post-condition on open and close."
+      },
+      {
+        "id": "vo-a11y-field",
+        "label": "A11y Field",
+        "context": "ctx-catalog",
+        "definition": "One accessibility field of a descriptor (role, accessible-name, expanded, selected, live-region, focus-target), each tied to the WCAG criterion it discharges. Every a11y attribute an adapter applies must come from these fields — an adapter-authored attribute is a fidelity violation."
+      },
+      {
+        "id": "vo-slot",
+        "label": "Slot",
+        "context": "ctx-catalog",
+        "definition": "One named composition slot a descriptor may present (trigger, spinner, option-list, empty-message, error-message), with its per-state presence. On container components, a slot also carries an admissibility rule (admitted child kinds) and cardinality (one | optional | many) per loom-spec §3.4."
+      },
+      {
+        "id": "vo-mapping-row",
+        "label": "Mapping Row",
+        "context": "ctx-ingestion",
+        "definition": "One row of the ingestion mapping: a semantic role Loom requires ← the external token that fills it (surface.interactive ← brand/surface). The mapping is the seam between the source's vocabulary and Loom's roles, and validates against token-ingestion.schema.json."
+      },
+      {
+        "id": "vo-ui-intent",
+        "label": "UIIntent",
+        "context": "ctx-reification",
+        "definition": "The canonical inbound message across the Reification Contract (ai-development-contracts ui-intent.schema.json): the aios-in-context, the What's page-graph, the required criteria per step, and the producer-extension carrying the intra-page composition-graph (roots, containment edges, per-view node assignment)."
+      },
+      {
+        "id": "vo-check-verdict",
+        "label": "Check Verdict",
+        "context": "ctx-reification",
+        "definition": "One oracle's outcome within a run: which §7 check (leaf-completeness, composition, view-completeness, machine-equivalence, criteria, motion), the finding set with core reasons (no-binding-for-context, containment-not-admitted, coverage-gap, machine-mismatch, ...), and the basis. Written to the run graph as produced; the report's overall verdict is the composition of these, never asserted."
+      },
+      {
+        "id": "vo-descriptor",
+        "label": "Descriptor",
+        "context": "ctx-runtime",
+        "definition": "The read-only render contract emitted on every state change: current state, present slots, accessibility fields realised for this platform, and the active motion (a catalogue name + phase, never an animation). The adapter renders the descriptor and nothing more — it chooses how to paint, never what to paint."
+      },
+      {
+        "id": "vo-state-map-entry",
+        "label": "State-Map Entry",
+        "context": "ctx-binding",
+        "definition": "Sensor-side wiring: one projection state → the machine data event it fires (present → data-arrived, empty → data-empty, failed → data-failed), derived from the projection's state space. Every state the projection can exhibit must be wired — state-unwired catches the silent-failure bug."
+      },
+      {
+        "id": "vo-verdict-map-entry",
+        "label": "Verdict-Map Entry",
+        "context": "ctx-binding",
+        "definition": "Effector-side wiring: one Build-seam VerdictEvent outcome → the machine event it fires (admitted → verdict-admitted, rejected → verdict-rejected). Both outcomes must be wired — verdict-unwired catches the unreachable failed state. The interface reflects the domain verdict, never adjudicates it."
+      }
+    ],
+    "relations": [],
+    "invariants": [],
+    "context_mappings": [],
+    "commands": [
+      {
+        "id": "cmd-load-bundle",
+        "label": "Load Bundle",
+        "context": "ctx-catalog",
+        "targets": "e-bundle",
+        "emits": [
+          "ev-bundle-loaded",
+          "ev-bundle-rejected"
+        ],
+        "fields": [
+          {
+            "name": "bundle-path",
+            "type": "string"
+          },
+          {
+            "name": "artifact-class",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-ingest-palette",
+        "label": "Ingest Palette",
+        "context": "ctx-ingestion",
+        "targets": "e-ingestion",
+        "emits": [
+          "ev-palette-ingested",
+          "ev-palette-rejected"
+        ],
+        "fields": [
+          {
+            "name": "external-token-set",
+            "type": "string"
+          },
+          {
+            "name": "mapping",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-reify-intent",
+        "label": "Reify Intent",
+        "context": "ctx-reification",
+        "targets": "e-reification-run",
+        "emits": [
+          "ev-run-started",
+          "ev-intent-rejected"
+        ],
+        "fields": [
+          {
+            "name": "intent",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-record-verdict",
+        "label": "Record Check Verdict",
+        "context": "ctx-reification",
+        "targets": "e-reification-run",
+        "emits": [
+          "ev-check-verdict-recorded"
+        ],
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "check",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-emit-report",
+        "label": "Emit Report",
+        "context": "ctx-reification",
+        "targets": "e-reification-run",
+        "emits": [
+          "ev-report-emitted"
+        ],
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-mount",
+        "label": "Mount",
+        "context": "ctx-runtime",
+        "targets": "e-component-instance",
+        "emits": [
+          "ev-mounted"
+        ],
+        "fields": [
+          {
+            "name": "machine-ref",
+            "type": "string"
+          },
+          {
+            "name": "context-of-use",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-dispatch-event",
+        "label": "Dispatch Event",
+        "context": "ctx-runtime",
+        "targets": "e-component-instance",
+        "emits": [
+          "ev-transition-fired",
+          "ev-event-rejected"
+        ],
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          },
+          {
+            "name": "event",
+            "type": "string"
+          },
+          {
+            "name": "origin",
+            "type": "string"
+          },
+          {
+            "name": "payload",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-unmount",
+        "label": "Unmount",
+        "context": "ctx-runtime",
+        "targets": "e-component-instance",
+        "emits": [
+          "ev-unmounted"
+        ],
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-derive-bindings",
+        "label": "Derive Bindings",
+        "context": "ctx-binding",
+        "targets": "e-binding-contract",
+        "emits": [
+          "ev-binding-derived",
+          "ev-binding-needs-authoring"
+        ],
+        "fields": [
+          {
+            "name": "intent-ref",
+            "type": "string"
+          },
+          {
+            "name": "composition-graph",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-author-binding",
+        "label": "Author Binding",
+        "context": "ctx-binding",
+        "targets": "e-binding-contract",
+        "emits": [
+          "ev-binding-authored"
+        ],
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "chosen-declaration",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "cmd-check-binding",
+        "label": "Check Binding",
+        "context": "ctx-binding",
+        "targets": "e-binding-contract",
+        "emits": [
+          "ev-binding-checked",
+          "ev-binding-rejected"
+        ],
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "id": "ev-bundle-loaded",
+        "label": "Bundle Loaded",
+        "context": "ctx-catalog",
+        "changes": "e-bundle",
+        "fields": [
+          {
+            "name": "bundle-id",
+            "type": "string"
+          },
+          {
+            "name": "artifact-class",
+            "type": "string"
+          },
+          {
+            "name": "named-graph",
+            "type": "string"
+          },
+          {
+            "name": "triple-count",
+            "type": "integer"
+          }
+        ]
+      },
+      {
+        "id": "ev-bundle-rejected",
+        "label": "Bundle Rejected",
+        "context": "ctx-catalog",
+        "changes": "e-bundle",
+        "fields": [
+          {
+            "name": "bundle-id",
+            "type": "string"
+          },
+          {
+            "name": "artifact-class",
+            "type": "string"
+          },
+          {
+            "name": "shacl-violations",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-palette-ingested",
+        "label": "Palette Ingested",
+        "context": "ctx-ingestion",
+        "changes": "e-ingestion",
+        "fields": [
+          {
+            "name": "ingestion-id",
+            "type": "string"
+          },
+          {
+            "name": "applied-mapping",
+            "type": "string"
+          },
+          {
+            "name": "criteria-measurements",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-palette-rejected",
+        "label": "Palette Rejected",
+        "context": "ctx-ingestion",
+        "changes": "e-ingestion",
+        "fields": [
+          {
+            "name": "ingestion-id",
+            "type": "string"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          },
+          {
+            "name": "basis",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-run-started",
+        "label": "Run Started",
+        "context": "ctx-reification",
+        "changes": "e-reification-run",
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "intent-ref",
+            "type": "string"
+          },
+          {
+            "name": "view-roots",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-intent-rejected",
+        "label": "Intent Rejected",
+        "context": "ctx-reification",
+        "changes": "e-reification-run",
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "violations",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-check-verdict-recorded",
+        "label": "Check Verdict Recorded",
+        "context": "ctx-reification",
+        "changes": "e-reification-run",
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "check",
+            "type": "string"
+          },
+          {
+            "name": "findings",
+            "type": "string"
+          },
+          {
+            "name": "outcome",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-report-emitted",
+        "label": "Report Emitted",
+        "context": "ctx-reification",
+        "changes": "e-reification-run",
+        "fields": [
+          {
+            "name": "run-id",
+            "type": "string"
+          },
+          {
+            "name": "verdict",
+            "type": "string"
+          },
+          {
+            "name": "reified-count",
+            "type": "integer"
+          },
+          {
+            "name": "unreifiable-count",
+            "type": "integer"
+          }
+        ]
+      },
+      {
+        "id": "ev-mounted",
+        "label": "Instance Mounted",
+        "context": "ctx-runtime",
+        "changes": "e-component-instance",
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          },
+          {
+            "name": "machine-ref",
+            "type": "string"
+          },
+          {
+            "name": "initial-state",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-transition-fired",
+        "label": "Transition Fired",
+        "context": "ctx-runtime",
+        "changes": "e-component-instance",
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          },
+          {
+            "name": "event",
+            "type": "string"
+          },
+          {
+            "name": "origin",
+            "type": "string"
+          },
+          {
+            "name": "from-state",
+            "type": "string"
+          },
+          {
+            "name": "to-state",
+            "type": "string"
+          },
+          {
+            "name": "motion",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-event-rejected",
+        "label": "Event Rejected",
+        "context": "ctx-runtime",
+        "changes": "e-component-instance",
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          },
+          {
+            "name": "event",
+            "type": "string"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          },
+          {
+            "name": "current-state",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-unmounted",
+        "label": "Instance Unmounted",
+        "context": "ctx-runtime",
+        "changes": "e-component-instance",
+        "fields": [
+          {
+            "name": "instance-id",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-binding-derived",
+        "label": "Binding Derived",
+        "context": "ctx-binding",
+        "changes": "e-binding-contract",
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "side",
+            "type": "string"
+          },
+          {
+            "name": "bound-declaration",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-binding-needs-authoring",
+        "label": "Binding Needs Authoring",
+        "context": "ctx-binding",
+        "changes": "e-binding-contract",
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "ambiguity",
+            "type": "string"
+          },
+          {
+            "name": "candidates",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-binding-authored",
+        "label": "Binding Authored",
+        "context": "ctx-binding",
+        "changes": "e-binding-contract",
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "chosen-declaration",
+            "type": "string"
+          },
+          {
+            "name": "authored-by",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-binding-checked",
+        "label": "Binding Checked",
+        "context": "ctx-binding",
+        "changes": "e-binding-contract",
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "checks-passed",
+            "type": "string"
+          }
+        ]
+      },
+      {
+        "id": "ev-binding-rejected",
+        "label": "Binding Rejected",
+        "context": "ctx-binding",
+        "changes": "e-binding-contract",
+        "fields": [
+          {
+            "name": "leaf",
+            "type": "string"
+          },
+          {
+            "name": "violation",
+            "type": "string"
+          },
+          {
+            "name": "basis",
+            "type": "string"
+          }
+        ]
+      }
+    ],
+    "read_models": [
+      {
+        "id": "rm-catalog-inventory",
+        "label": "Catalog Inventory",
+        "projects": [
+          "e-bundle",
+          "e-token-graph",
+          "e-machine",
+          "e-reification-row",
+          "e-motion-entry",
+          "e-mode-contract"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-blast-radius",
+        "label": "Token Blast Radius",
+        "projects": [
+          "e-token",
+          "e-reification-row"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-ingestion-report",
+        "label": "Ingestion Report",
+        "projects": [
+          "e-ingestion"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-run-status",
+        "label": "Run Status",
+        "projects": [
+          "e-reification-run"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-reification-report",
+        "label": "Reification Report",
+        "projects": [
+          "e-reification-run"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-descriptor",
+        "label": "Descriptor Stream",
+        "projects": [
+          "e-component-instance"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      },
+      {
+        "id": "rm-binding-contract",
+        "label": "Binding Contract View",
+        "projects": [
+          "e-binding-contract"
+        ],
+        "states": [
+          "loading",
+          "present",
+          "empty",
+          "failed"
+        ]
+      }
+    ],
+    "wireframe_steps": [
+      {
+        "id": "ui-gallery-index",
+        "label": "Gallery Index",
+        "surfaces": [
+          {
+            "projection": "rm-catalog-inventory",
+            "aio": "aio-gallery-catalog-browser"
+          }
+        ],
+        "transitions_to": [
+          "ui-component-stage"
+        ],
+        "state_meanings": [
+          {
+            "projection": "rm-catalog-inventory",
+            "state": "loading",
+            "meaning": "The store is being queried for composition-graphs and mode-contracts; the page list is on its way."
+          },
+          {
+            "projection": "rm-catalog-inventory",
+            "state": "present",
+            "meaning": "Every component in the catalog is listed with its states and declared events — pick one to drive it."
+          },
+          {
+            "projection": "rm-catalog-inventory",
+            "state": "empty",
+            "meaning": "No bundles are loaded; the gallery has nothing to show until core's reference bundles are loaded."
+          },
+          {
+            "projection": "rm-catalog-inventory",
+            "state": "failed",
+            "meaning": "The store could not be queried; the gallery cannot build its page list."
+          }
+        ],
+        "content_refs": [
+          {
+            "key": "gallery.index.heading",
+            "role": "heading"
+          },
+          {
+            "key": "gallery.index.empty",
+            "role": "empty-message"
+          },
+          {
+            "key": "gallery.index.error",
+            "role": "error-message"
+          }
+        ]
+      },
+      {
+        "id": "ui-component-stage",
+        "label": "Component Stage",
+        "surfaces": [
+          {
+            "projection": "rm-descriptor",
+            "aio": "aio-descriptor-stage"
+          }
+        ],
+        "offers": [
+          {
+            "command": "cmd-dispatch-event",
+            "aio": "aio-state-driver"
+          }
+        ],
+        "transitions_to": [
+          "ui-gallery-index"
+        ],
+        "state_meanings": [
+          {
+            "projection": "rm-descriptor",
+            "state": "loading",
+            "meaning": "The instance is mounting; the machine has not yet emitted its first descriptor."
+          },
+          {
+            "projection": "rm-descriptor",
+            "state": "present",
+            "meaning": "The live descriptor — current state, slots, a11y fields, active motion — rendered exactly as the product would render it."
+          },
+          {
+            "projection": "rm-descriptor",
+            "state": "empty",
+            "meaning": "No component is mounted on the stage; pick one from the index."
+          },
+          {
+            "projection": "rm-descriptor",
+            "state": "failed",
+            "meaning": "The instance could not be mounted (machine missing from the store or mode-contract inconsistent); the stage shows the failure basis."
+          }
+        ],
+        "must_satisfy": [
+          "2.1.1-keyboard",
+          "2.4.3-focus-order",
+          "4.1.2-name-role-value",
+          "4.1.3-status-messages"
+        ],
+        "content_refs": [
+          {
+            "key": "gallery.stage.heading",
+            "role": "heading"
+          },
+          {
+            "key": "gallery.stage.empty",
+            "role": "empty-message"
+          },
+          {
+            "key": "gallery.stage.error",
+            "role": "error-message"
+          },
+          {
+            "key": "gallery.stage.help",
+            "role": "help"
+          }
+        ]
+      }
+    ],
+    "flows": [
+      {
+        "id": "f-bundle-load",
+        "label": "Bundle Load",
+        "steps": [
+          "t-operator-load",
+          "cmd-load-bundle",
+          "ev-bundle-loaded",
+          "rm-catalog-inventory"
+        ],
+        "system": "sys-loom-cli"
+      },
+      {
+        "id": "f-token-ingestion",
+        "label": "Token Ingestion",
+        "steps": [
+          "t-design-source-export",
+          "cmd-ingest-palette",
+          "ev-palette-ingested",
+          "rm-ingestion-report"
+        ],
+        "system": "sys-loom-cli"
+      },
+      {
+        "id": "f-reification",
+        "label": "Reification Run",
+        "steps": [
+          "t-product-cli-reify",
+          "cmd-reify-intent",
+          "ev-run-started",
+          "t-oracle-sequencer",
+          "cmd-record-verdict",
+          "ev-check-verdict-recorded",
+          "t-report-assembler",
+          "cmd-emit-report",
+          "ev-report-emitted",
+          "rm-reification-report"
+        ],
+        "system": "sys-loom-cli"
+      },
+      {
+        "id": "f-binding-derivation",
+        "label": "Binding Derivation",
+        "steps": [
+          "t-operator-bind",
+          "cmd-derive-bindings",
+          "ev-binding-derived",
+          "t-binding-checker",
+          "cmd-check-binding",
+          "ev-binding-checked",
+          "rm-binding-contract"
+        ],
+        "system": "sys-loom-cli"
+      },
+      {
+        "id": "f-binding-authoring",
+        "label": "Binding Authoring",
+        "steps": [
+          "t-binding-author",
+          "cmd-author-binding",
+          "ev-binding-authored",
+          "t-binding-checker",
+          "cmd-check-binding",
+          "ev-binding-checked",
+          "rm-binding-contract"
+        ],
+        "system": "sys-loom-cli"
+      },
+      {
+        "id": "f-component-lifecycle",
+        "label": "Component Lifecycle",
+        "steps": [
+          "t-adapter-mount",
+          "cmd-mount",
+          "ev-mounted",
+          "t-adapter-unmount",
+          "cmd-unmount",
+          "ev-unmounted",
+          "rm-descriptor"
+        ],
+        "system": "sys-loom-runtime"
+      },
+      {
+        "id": "f-component-interaction",
+        "label": "Component Interaction",
+        "steps": [
+          "t-native-input",
+          "cmd-dispatch-event",
+          "ev-transition-fired",
+          "rm-descriptor"
+        ],
+        "system": "sys-loom-runtime"
+      },
+      {
+        "id": "f-data-binding",
+        "label": "Data Binding Feed",
+        "steps": [
+          "t-projection-driver",
+          "cmd-dispatch-event",
+          "ev-transition-fired",
+          "rm-descriptor"
+        ],
+        "system": "sys-loom-runtime"
+      },
+      {
+        "id": "f-verdict-reflection",
+        "label": "Verdict Reflection",
+        "steps": [
+          "t-verdict-return",
+          "cmd-dispatch-event",
+          "ev-transition-fired",
+          "rm-descriptor"
+        ],
+        "system": "sys-loom-runtime"
+      },
+      {
+        "id": "f-gallery-walkthrough",
+        "label": "Gallery Walkthrough",
+        "steps": [
+          "ui-gallery-index",
+          "ui-component-stage",
+          "t-gallery-user",
+          "cmd-dispatch-event",
+          "ev-transition-fired",
+          "rm-descriptor"
+        ],
+        "system": "sys-gallery"
+      }
+    ],
+    "aios": [
+      {
+        "id": "aio-gallery-catalog-browser",
+        "label": "Catalog Browser"
+      },
+      {
+        "id": "aio-descriptor-stage",
+        "label": "Descriptor Stage"
+      },
+      {
+        "id": "aio-state-driver",
+        "label": "State Driver"
+      }
+    ],
+    "contexts_of_use": [],
+    "application_roots": [
+      {
+        "id": "ar-gallery",
+        "label": "Gallery Root",
+        "navigates_from_root": [
+          "ui-gallery-index",
+          "ui-component-stage"
+        ]
+      }
+    ],
+    "wcag_criteria": [],
+    "attestations": [],
+    "content_stores": [],
+    "design_systems": [],
+    "cios": [],
+    "tokens": [],
+    "reification_rules": [],
+    "reference_sets": [],
+    "data_shapes": [],
+    "production_datasets": [],
+    "systems": [
+      {
+        "id": "sys-loom-cli",
+        "label": "loom-cli",
+        "kind": "cli",
+        "purpose": "The `loom` binary — the product-cli-facing surface: load and validate bundles, ingest palettes, reify intents, emit reports, derive and check bindings, and answer the §8 queries over the embedded Oxigraph store.",
+        "references_domain": [
+          "ctx-catalog",
+          "ctx-ingestion",
+          "ctx-reification",
+          "ctx-binding"
+        ]
+      },
+      {
+        "id": "sys-loom-runtime",
+        "label": "loom-runtime",
+        "kind": "service",
+        "purpose": "The headless machine runtime — one compiled Rust core (wasm via wasm-bindgen for loom-web; static libraries via UniFFI for loom-ios/loom-android) exposing exactly the mode-contract surfaces: dispatch(event), the descriptor observable, mount/unmount. Modes are this runtime plus a thin platform shim; adapters package it per framework.",
+        "references_domain": [
+          "ctx-catalog",
+          "ctx-runtime",
+          "ctx-binding"
+        ]
+      },
+      {
+        "id": "sys-gallery",
+        "label": "Conformance Gallery",
+        "kind": "application",
+        "purpose": "The per-adapter runnable gallery (loom-web-react-gallery first): pages generated from core's composition-graphs and mode-contracts, rendering core's reference data through the adapter and the FixtureDriver — the visual/interactive counterpart to the oracles, and the acceptance test for the mode-contract itself.",
+        "root": "ar-gallery",
+        "references_domain": [
+          "ctx-catalog",
+          "ctx-runtime",
+          "ctx-binding"
+        ]
+      }
+    ],
+    "triggers": [
+      {
+        "id": "t-operator-load",
+        "label": "Operator loads a bundle",
+        "source": "user",
+        "issues": "cmd-load-bundle"
+      },
+      {
+        "id": "t-design-source-export",
+        "label": "Designer submits a palette",
+        "source": "user",
+        "issues": "cmd-ingest-palette"
+      },
+      {
+        "id": "t-product-cli-reify",
+        "label": "Product-cli requests reification",
+        "source": "external",
+        "issues": "cmd-reify-intent"
+      },
+      {
+        "id": "t-oracle-sequencer",
+        "label": "Oracle sequencer advances the run",
+        "source": "automated",
+        "issues": "cmd-record-verdict",
+        "watches": "rm-run-status"
+      },
+      {
+        "id": "t-report-assembler",
+        "label": "Report assembler fires on completion",
+        "source": "automated",
+        "issues": "cmd-emit-report",
+        "watches": "rm-run-status"
+      },
+      {
+        "id": "t-operator-bind",
+        "label": "Operator derives bindings",
+        "source": "user",
+        "issues": "cmd-derive-bindings"
+      },
+      {
+        "id": "t-binding-author",
+        "label": "Human authors an ambiguous binding",
+        "source": "user",
+        "issues": "cmd-author-binding"
+      },
+      {
+        "id": "t-binding-checker",
+        "label": "Checker validates derived/authored bindings",
+        "source": "automated",
+        "issues": "cmd-check-binding",
+        "watches": "rm-binding-contract"
+      },
+      {
+        "id": "t-adapter-mount",
+        "label": "Adapter mounts a component",
+        "source": "external",
+        "issues": "cmd-mount"
+      },
+      {
+        "id": "t-adapter-unmount",
+        "label": "Adapter unmounts a component",
+        "source": "external",
+        "issues": "cmd-unmount"
+      },
+      {
+        "id": "t-native-input",
+        "label": "End user acts on native input",
+        "source": "user",
+        "issues": "cmd-dispatch-event"
+      },
+      {
+        "id": "t-projection-driver",
+        "label": "ProjectionDriver pushes data state",
+        "source": "external",
+        "issues": "cmd-dispatch-event"
+      },
+      {
+        "id": "t-verdict-return",
+        "label": "Build-seam verdict returns",
+        "source": "external",
+        "issues": "cmd-dispatch-event"
+      },
+      {
+        "id": "t-gallery-user",
+        "label": "Gallery visitor drives a state",
+        "source": "user",
+        "issues": "cmd-dispatch-event"
+      }
+    ],
+    "unreifiable_rules": [],
+    "products": [
+      {
+        "id": "loom",
+        "label": "Loom",
+        "purpose": "Deliver one behavioural truth — machines, tokens, reification, motion — natively on every platform and idiomatically in every framework, with conformance checked by oracle, never claimed.",
+        "owns_domain": [
+          "ctx-catalog",
+          "ctx-ingestion",
+          "ctx-reification",
+          "ctx-runtime",
+          "ctx-binding"
+        ],
+        "owns_system": [
+          "sys-loom-cli",
+          "sys-loom-runtime",
+          "sys-gallery"
+        ],
+        "version": "0.1.0"
+      }
+    ],
+    "journeys": [],
+    "quality_demands": []
+  },
+  "tool_calls": 97,
+  "started_at": "2026-07-06T12:32:32.565624947+00:00",
+  "finalized": false
+}

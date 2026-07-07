@@ -1,0 +1,179 @@
+id: e-reification-run-decider
+decides_for: e-reification-run
+handles:
+- cmd-reify-intent
+- cmd-record-verdict
+- cmd-emit-report
+emits:
+- ev-run-started
+- ev-intent-rejected
+- ev-check-verdict-recorded
+- ev-report-emitted
+evolves_from:
+- ev-run-started
+- ev-intent-rejected
+- ev-check-verdict-recorded
+- ev-report-emitted
+rejects:
+- inv-intent-schema-valid
+- inv-run-already-started
+- inv-run-active
+- inv-run-matches
+- inv-checks-before-report
+logic:
+  initial:
+    status: "none"
+    run-id: ""
+    checks: 0
+  evolve:
+  - on: ev-run-started
+    set:
+      status: started
+      run-id: '=event["run-id"]'
+      checks: 0
+  - on: ev-intent-rejected
+    set:
+      status: rejected
+  - on: ev-check-verdict-recorded
+    set:
+      checks: '=state["checks"] + 1'
+  - on: ev-report-emitted
+    set:
+      status: reported
+  decide:
+  - on: cmd-reify-intent
+    guards:
+    - expr: 'command["intent"] != ""'
+      else_reject: inv-intent-schema-valid
+    - expr: 'state["status"] != "started"'
+      else_reject: inv-run-already-started
+    emit:
+    - event: ev-run-started
+      with:
+        run-id: '=command["intent"] + "#run"'
+        intent-ref: '=command["intent"]'
+  - on: cmd-record-verdict
+    guards:
+    - expr: 'state["status"] == "started"'
+      else_reject: inv-run-active
+    - expr: 'command["run-id"] == state["run-id"]'
+      else_reject: inv-run-matches
+    emit:
+    - event: ev-check-verdict-recorded
+      with:
+        run-id: '=command["run-id"]'
+        check: '=command["check"]'
+  - on: cmd-emit-report
+    guards:
+    - expr: 'state["status"] == "started"'
+      else_reject: inv-run-active
+    - expr: 'command["run-id"] == state["run-id"]'
+      else_reject: inv-run-matches
+    - expr: 'state["checks"] > 0'
+      else_reject: inv-checks-before-report
+    emit:
+    - event: ev-report-emitted
+      with:
+        run-id: '=command["run-id"]'
+scenarios:
+- name: a schema-valid intent starts a run
+  given: []
+  when:
+    command: cmd-reify-intent
+    with:
+      intent: intent-cart-42
+  then:
+    emit:
+    - event: ev-run-started
+      with:
+        run-id: intent-cart-42#run
+        intent-ref: intent-cart-42
+- name: an empty intent is rejected at the boundary
+  given: []
+  when:
+    command: cmd-reify-intent
+    with:
+      intent: ""
+  then:
+    reject: inv-intent-schema-valid
+- name: reifying while a run is active is rejected
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  when:
+    command: cmd-reify-intent
+    with:
+      intent: intent-cart-43
+  then:
+    reject: inv-run-already-started
+- name: a check verdict appends to the active run graph as it is produced
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  when:
+    command: cmd-record-verdict
+    with:
+      run-id: intent-cart-42#run
+      check: view-legality
+  then:
+    emit:
+    - event: ev-check-verdict-recorded
+      with:
+        run-id: intent-cart-42#run
+        check: view-legality
+- name: a verdict for a different run is refused
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  when:
+    command: cmd-record-verdict
+    with:
+      run-id: intent-other#run
+      check: view-legality
+  then:
+    reject: inv-run-matches
+- name: the report is constructed over the recorded verdicts
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  - event: ev-check-verdict-recorded
+    with:
+      run-id: intent-cart-42#run
+      check: view-legality
+  when:
+    command: cmd-emit-report
+    with:
+      run-id: intent-cart-42#run
+  then:
+    emit:
+    - event: ev-report-emitted
+      with:
+        run-id: intent-cart-42#run
+- name: a report over zero verdicts is refused — never assembled from memory
+  given:
+  - event: ev-run-started
+    with:
+      run-id: intent-cart-42#run
+      intent-ref: intent-cart-42
+  when:
+    command: cmd-emit-report
+    with:
+      run-id: intent-cart-42#run
+  then:
+    reject: inv-checks-before-report
+- name: a report for a run that never started is refused
+  given: []
+  when:
+    command: cmd-emit-report
+    with:
+      run-id: intent-cart-42#run
+  then:
+    reject: inv-run-active

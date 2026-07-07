@@ -1,0 +1,21 @@
+id: handler-e-ingestion
+schema: 'Rust module: §2.5 token-ingestion gate for loom-ingest — pub fn ingest(palette, mapping) -> IngestionReport (verdict ingested | rejected)'
+prompt: 'Implement the e-ingestion aggregate slice in crates/loom-ingest: the §2.5 gate — check mapping completeness (unmapped-role), resolve every mapped external token (unresolved-source), then re-run the §2.3 token-tier criteria against the mapped values with WCAG contrast computed in Rust (criterion-regression). Fail-closed: a rejected palette never touches the semantic tier (ev-palette-rejected with reason + measured-vs-required basis); an ingested one becomes the semantic tier via loom-graph''s load gate (ev-palette-ingested). Report per-role mapping actually applied. Validate the mapping against token-ingestion.schema.json at the boundary (p-seam-schema-validated).'
+model: code
+context:
+  derived_from:
+  - domain:e-ingestion
+  frozen: true
+  hash: sha256:557f00f3189b7cb84989e62501849b998118f8ccb8d46b72b654e0cafaf1acf7
+produces:
+  artifact: 'Rust module: the fail-closed §2.5 ingestion gate + ingestion report'
+  path: crates/loom-ingest/src/gate.rs
+trace:
+  what: e-ingestion
+  behaviour: cmd-ingest-palette → ev-palette-ingested | ev-palette-rejected (f-token-ingestion)
+  why:
+  - d-dual-encoding
+  - p-fail-closed-load
+  - p-seam-schema-validated
+  - pat-load-gate
+  structure: loom-oracles/loom-ingest layer of loom-app

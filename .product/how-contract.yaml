@@ -1,0 +1,244 @@
+blueprint: rust-graph-workspace
+version: 0.1.0
+realises_version: 0.1.0
+top_decisions:
+- id: d-graph-primary
+  decision: 'The embedded Oxigraph store is the primary store: machines, the reification table, the token graph, the motion catalog, and the mode-contracts are RDF, loaded once and queried everywhere. The graph is the implementation, not a serialization of it.'
+  rationale: 'loom-spec §8 requires blast-radius, completeness, machine equivalence, view legality, and criteria discharge answerable by query. A graph exported from some other primary store is a parallel model that can drift; making the store primary makes drift structurally impossible. Same graph-as-state discipline as decision-cli: one substrate, one write path, projections derived.'
+  licenses:
+  - p-views-over-graph
+  - p-queries-fetch-oracles-judge
+  - p-run-graph-append
+- id: d-one-runtime
+  decision: The machine runtime is one Rust crate compiled to wasm (web, via wasm-bindgen) and to static libraries via UniFFI (iOS/Android). A mode is not a per-platform reimplementation — it is the same loom-machine binary plus a thin platform shim.
+  rationale: 'The implementation tier''s hardest promise is that loom-ios, loom-android, and loom-web run the same machine. Compiling one artifact makes that literal: cross-platform behavioural drift is prevented by construction, not caught by oracle. machine_equivalence still runs as defence in depth and covers the shim''s event mapping.'
+  licenses:
+  - p-ffi-surface-minimal
+  - p-shim-no-state
+  - p-one-version
+- id: d-dual-encoding
+  decision: 'Close loom-spec''s dual-encoding gap on the implementation side: SHACL shapes for every artifact class validated on load, held equivalent to the JSON Schemas by encoding-neutral test vectors; the §7 oracles reimplemented in Rust and proven equivalent to loom-spec''s Python reference judges on the shared vectors.'
+  rationale: 'The house conformance-harness pattern: two encodings held equivalent by vectors. A vector on which the encodings (or Rust vs Python) disagree is INCOHERENCE — a contract bug that blocks release — never a bug to silently fix on one side. Constraints inexpressible in either encoding live in the Rust oracle layer.'
+  licenses:
+  - p-fail-closed-load
+  - p-vectors-equivalence
+- id: d-machines-as-data
+  decision: A machine is data in loom:g/machines; the runtime interprets it from the graph. Hot paths may compile a machine to a transition table at load, but the graph stays the source.
+  rationale: Adding a component to the catalog must be a bundle load, not a code change — the catalog scales by data, and the same loaded machine drives the runtime, the oracles, and the gallery's generated state-drivers, so they cannot disagree about what a component is.
+  licenses:
+  - p-machine-from-graph
+- id: d-canonical-contracts
+  decision: 'loom-reify speaks only the pinned canonical contracts: serde types generated against the ai-development-contracts schemas (ui-intent, reification-report), with the composition-graph riding in producer-extension per loom-spec 0.8.0 §3.4.'
+  rationale: The seam stays honest only if both messages are schema-validated at the boundary against a pinned version — producer-owns-the-seam. Hand-written seam types would be a second encoding of the contract that could drift from the published one.
+  licenses:
+  - p-seam-schema-validated
+principles:
+- id: p-views-over-graph
+  statement: Rust structs are views over the graph — SPARQL CONSTRUCT into typed rows. No parallel domain model exists that could drift from the store.
+  licensed_by:
+  - d-graph-primary
+  enforced_by:
+  - grep-gate-no-inline-sparql
+  - review-no-parallel-model
+- id: p-queries-fetch-oracles-judge
+  statement: 'Queries fetch, oracles judge: no verdict is computed inside a SPARQL query where the logic would be unreadable — the decision procedure is a pure Rust function over queried facts.'
+  licensed_by:
+  - d-graph-primary
+  enforced_by:
+  - vector-suite-oracles
+  - grep-gate-no-inline-sparql
+- id: p-run-graph-append
+  statement: Every check verdict is written to the run graph as it is produced; a report is a CONSTRUCT over the run graph and is never assembled from memory.
+  licensed_by:
+  - d-graph-primary
+  enforced_by:
+  - report-schema-validation
+  - run-graph-replay-test
+- id: p-fail-closed-load
+  statement: A bundle that fails SHACL validation never enters the store, and a palette that fails a token-tier criterion never enters the semantic tier — every gate is fail-closed.
+  licensed_by:
+  - d-dual-encoding
+  enforced_by:
+  - shacl-vector-suite
+  - ingest-rejection-tests
+- id: p-vectors-equivalence
+  statement: Rust and Python oracles run the same encoding-neutral vectors; any disagreement is INCOHERENCE (contract under-specification) and blocks release — never a bug silently fixed on one side.
+  licensed_by:
+  - d-dual-encoding
+  enforced_by:
+  - vector-suite-oracles
+  - ci-incoherence-gate
+- id: p-ffi-surface-minimal
+  statement: 'loom-ffi and loom-wasm expose exactly the mode-contract — dispatch(event), a descriptor subscription, mount/unmount — and nothing else: no raw-state getter, no transition method. What the adapter cannot call, no platform can leak.'
+  licensed_by:
+  - d-one-runtime
+  enforced_by:
+  - ffi-surface-review
+  - adapter-fidelity-scan
+- id: p-shim-no-state
+  statement: Shims and adapters hold no shadow state and contain no conditional on machine state other than rendering the descriptor; native events map to declared events by table. The same fidelity rules apply one level down as one level up.
+  licensed_by:
+  - d-one-runtime
+  enforced_by:
+  - adapter-fidelity-scan
+- id: p-one-version
+  statement: A mode's version equals the core version it embeds — one number, one behaviour; a mode may not version independently of the runtime.
+  licensed_by:
+  - d-one-runtime
+  enforced_by:
+  - release-version-lockstep-check
+- id: p-machine-from-graph
+  statement: 'Adding a component to the catalog is a bundle load, not a code change: the runtime interprets machines from loom:g/machines, and any load-time compilation keeps the graph as the source of truth.'
+  licensed_by:
+  - d-machines-as-data
+  enforced_by:
+  - machine-equivalence-oracle
+  - contract-consistency-oracle
+- id: p-seam-schema-validated
+  statement: Every message crossing a seam is schema-validated at the boundary against the pinned contract version — UIIntent on entry, ReificationReport on exit, ingestion mapping on submission.
+  licensed_by:
+  - d-canonical-contracts
+  enforced_by:
+  - report-schema-validation
+  - intent-schema-validation
+patterns:
+- id: pat-typed-row-view
+  shape: A maintained SPARQL CONSTRUCT under queries/ + a serde row struct + a typed view built From&lt;Row&gt; — the only way domain data leaves the store. The query file is vector-tested; no inline SPARQL literals in crate code.
+  realizes:
+  - p-views-over-graph
+  - p-queries-fetch-oracles-judge
+- id: pat-load-gate
+  shape: 'Loader function: parse JSON-LD against the pinned context → SHACL-validate against shapes/ → atomic insert into the target named graph. On violation, return the shape report and write nothing.'
+  realizes:
+  - p-fail-closed-load
+- id: pat-oracle-pair
+  shape: Each §7 oracle = a SPARQL fact-gatherer + a pure Rust judge function + a paired vector test that runs both the Rust judge and loom-spec's Python reference over the shared vectors/ and diffs verdicts.
+  realizes:
+  - p-vectors-equivalence
+  - p-queries-fetch-oracles-judge
+- id: pat-ffi-handle
+  shape: 'LoomComponent handle, declared once in UniFFI udl with a wasm-bindgen twin: dispatch(event), subscribe(descriptor-callback), mount(), unmount() — the complete public surface; no other symbol exported.'
+  realizes:
+  - p-ffi-surface-minimal
+- id: pat-shim-table
+  shape: Per-platform shim = a static event-mapping table (native input → declared event name) + descriptor-apply functions (a11y fields verbatim, motion per catalog entry with the platform's reduce-motion honoured). Zero branches on machine state; zero local state.
+  realizes:
+  - p-shim-no-state
+- id: pat-run-recorder
+  shape: 'PROV-O writer: the run is an Activity, the intent an Entity; each oracle verdict is appended to loom:g/runs/&lt;id&gt; as produced. Report emission = CONSTRUCT over the run graph → map to canonical enums → schema-validate → serialise.'
+  realizes:
+  - p-run-graph-append
+  - p-seam-schema-validated
+- id: pat-graph-interpreter
+  shape: 'Machine interpreter: at mount, read the component''s machine from loom:g/machines into an interpretable transition structure (optionally table-compiled); every dispatch resolves against that structure; the graph remains the sole authoring surface.'
+  realizes:
+  - p-machine-from-graph
+  - p-one-version
+application_contract:
+  id: loom-app
+  language: Rust (2021 edition workspace); TS/Swift/Kotlin only in shims and adapters
+  runtime: native binary (loom-cli) + wasm via wasm-bindgen (web) + static libraries via UniFFI (iOS/Android)
+  layering:
+  - loom-ontology (vocabulary consts + JSON-LD contexts)
+  - loom-graph (store, loaders, SHACL on load, PROV-O recording)
+  - 'loom-machine + loom-descriptor (runtime: interpret from graph, emit descriptors)'
+  - 'loom-oracles + loom-ingest (verification: §7 checks, §2.5 gate)'
+  - 'loom-reify + loom-bind (seam: canonical contracts, binding derive/check, drivers)'
+  - 'loom-ffi + loom-wasm (surface: the mode-contract and nothing else)'
+  - 'loom-cli (binary: load validate ingest reify report query)'
+  feature_organization: 'One crate per seam: loom-ontology → loom-graph → loom-machine/loom-descriptor → loom-oracles/loom-ingest → loom-reify/loom-bind → loom-ffi/loom-wasm → loom-cli; queries/, shapes/, vectors/, contracts/ as maintained assets beside the crates'
+  persistence_model: Embedded Oxigraph, one store per distribution, named graph per artifact class (loom:g/tokens, machines, reification, motion, mode-contracts, runs/&lt;id&gt;); N-Quads wire format, JSON-LD contexts per bundle
+  cross_cutting:
+  - SHACL validation on every load (fail-closed)
+  - PROV-O provenance on every run
+  - pinned canonical contracts at every seam
+  - encoding-neutral vectors shared with loom-spec
+  statements:
+  - id: s-store-single-owner
+    statement: Only loom-graph depends on oxigraph and opens the store; every other crate reaches data through loom-graph's typed-view API.
+    enforced_by: 'cargo dependency-graph check: oxigraph appears in exactly one [dependencies] table'
+  - id: s-ffi-no-state-getter
+    statement: loom-ffi/loom-wasm export no function returning raw machine state and no function effecting a transition.
+    enforced_by: 'ffi-surface-review: udl + wasm-bindgen exports diffed against the mode-contract surface list'
+  - id: s-queries-maintained
+    statement: Every SPARQL query is a file under queries/, tested against vectors; no inline SPARQL string literals in crate code.
+    enforced_by: grep-gate-no-inline-sparql in CI
+  - id: s-serde-generated
+    statement: loom-reify's seam types are generated from the pinned ai-development-contracts schemas, never hand-written.
+    enforced_by: build step regenerates and diffs; contracts/ pins the schema hash
+  - id: s-vectors-shared
+    statement: loom-oracles' tests run the shared vectors/ imported from loom-spec; a Rust/Python verdict disagreement fails CI as INCOHERENCE.
+    enforced_by: 'ci-incoherence-gate: dual-judge vector job'
+infrastructure_contract:
+  id: loom-infra
+  satisfies: loom-app
+  frozen: false
+  resources:
+  - id: r-oxigraph
+    kind: embedded-store
+    choice: Oxigraph embedded (same crate lineage as decision-cli); no external database process
+    satisfies_statement: s-store-single-owner
+  - id: r-shapes
+    kind: validation-assets
+    choice: shapes/ — SHACL per artifact class, asserted against the encoding-neutral vectors
+  - id: r-queries
+    kind: query-assets
+    choice: queries/ — maintained SPARQL for the §8 mandated queries, vector-tested
+    satisfies_statement: s-queries-maintained
+  - id: r-vectors
+    kind: test-fixtures
+    choice: vectors/ — encoding-neutral fixtures imported from loom-spec
+    satisfies_statement: s-vectors-shared
+  - id: r-contracts
+    kind: vendored-schemas
+    choice: contracts/ — pinned ai-development-contracts schemas (ui-intent, reification-report) + serde codegen
+    satisfies_statement: s-serde-generated
+  - id: r-dist-npm
+    kind: distribution
+    choice: 'loom-web: npm package (wasm + TS shim)'
+    depends_on:
+    - r-oxigraph
+  - id: r-dist-swiftpm
+    kind: distribution
+    choice: 'loom-ios: XCFramework via SwiftPM (UniFFI staticlib)'
+    depends_on:
+    - r-oxigraph
+  - id: r-dist-maven
+    kind: distribution
+    choice: 'loom-android: AAR via Maven (UniFFI staticlib)'
+    depends_on:
+    - r-oxigraph
+  - id: r-ci
+    kind: ci
+    choice: 'Phase-gated CI per architecture.md §6: each phase''s gate is a required job; no phase merges before the prior gate is green'
+interface_contracts:
+- id: if-reification-seam
+  surface: 'loom reify: canonical UIIntent in → canonical ReificationReport out, both schema-validated at the boundary; the composition-graph rides in producer-extension per loom-spec 0.8.0 §3.4.'
+  standard: 'ai-development-contracts (pinned): ui-intent.schema.json / reification-report.schema.json'
+  derived_from:
+  - cmd-reify-intent
+  - rm-reification-report
+- id: if-mode-contract
+  surface: 'LoomComponent handle: dispatch(event) / descriptor subscription / mount / unmount — the three mode-contract surfaces, structurally uncallable beyond.'
+  standard: mode-contract.schema.json + UniFFI udl / wasm-bindgen exports
+  derived_from:
+  - cmd-dispatch-event
+  - rm-descriptor
+  - cmd-mount
+  - cmd-unmount
+- id: if-driver-pair
+  surface: ProjectionDriver (pushes projection state + data per the state-map and slot-data) + CommandDriver (receives the issued command, returns the verdict per the verdict-map). FixtureDriver (gallery) and LiveDriver (product) are the two conforming implementations; nothing else differs.
+  standard: binding-contract.schema.json (state-map / verdict-map / slot-data)
+  derived_from:
+  - t-projection-driver
+  - t-verdict-return
+  - rm-binding-contract
+- id: if-cli
+  surface: loom load | validate | ingest | reify | report | query — the product-cli-facing surface over the store.
+  standard: POSIX CLI; JSON in/out on the seam subcommands
+  derived_from:
+  - cmd-load-bundle
+  - cmd-ingest-palette
+  - cmd-reify-intent
+  - rm-blast-radius
+  - rm-catalog-inventory

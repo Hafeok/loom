@@ -1,0 +1,13 @@
+name = "loom"
+schema-version = "1"
+
+[product]
+responsibility = "design system for product-cli"
+
+[author]
+# default agent CLI for `product session start`: claude | copilot
+# cli = "claude"
+
+[mcp]
+write = true
+port = 7777

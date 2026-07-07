@@ -1,0 +1,73 @@
+id: rm-ingestion-report-projector
+projects_for: rm-ingestion-report
+folds:
+- ev-palette-ingested
+- ev-palette-rejected
+over:
+- e-ingestion
+logic:
+  initial:
+    status: empty
+    ingested: 0
+    rejected: 0
+    last-basis: ""
+  apply:
+  - on: ev-palette-ingested
+    set:
+      status: present
+      ingested: "=view.ingested + 1"
+      last-basis: ""
+  - on: ev-palette-rejected
+    set:
+      status: failed
+      rejected: "=view.rejected + 1"
+      last-basis: '=event["basis"]'
+scenarios:
+- name: no ingestion attempts yet reports empty
+  given: []
+  then:
+    status: empty
+    ingested: 0
+    rejected: 0
+    last-basis: ""
+- name: an adopted palette marks the report present
+  given:
+  - event: ev-palette-ingested
+    with:
+      ingestion-id: acme-brand-2026
+      applied-mapping: acme-to-loom-roles
+      criteria-measurements: all-green
+  then:
+    status: present
+    ingested: 1
+    rejected: 0
+    last-basis: ""
+- name: a rejection surfaces its basis — the reason is queryable, not a log line
+  given:
+  - event: ev-palette-rejected
+    with:
+      ingestion-id: acme-brand-2026
+      reason: criterion-regression
+      basis: contrast-minimum on role surface.text
+  then:
+    status: failed
+    ingested: 0
+    rejected: 1
+    last-basis: contrast-minimum on role surface.text
+- name: a repaired re-submission clears the failure
+  given:
+  - event: ev-palette-rejected
+    with:
+      ingestion-id: acme-brand-2026
+      reason: criterion-regression
+      basis: contrast-minimum on role surface.text
+  - event: ev-palette-ingested
+    with:
+      ingestion-id: acme-brand-2026
+      applied-mapping: acme-to-loom-roles-v2
+      criteria-measurements: all-green
+  then:
+    status: present
+    ingested: 1
+    rejected: 1
+    last-basis: ""

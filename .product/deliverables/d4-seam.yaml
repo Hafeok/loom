@@ -1,0 +1,28 @@
+id: d4-seam
+feature: ft-seam
+acceptance:
+- id: canonical-roundtrip
+  statement: '`loom reify` on the reference sample.ui-intent.json emits a ReificationReport that validates against reification-report.schema.json, with the verdict equal to §7.7 composition'
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-reify canonical_roundtrip
+- id: run-graph-persists
+  statement: after process restart, a prior run's per-check verdicts are answerable by query over loom:g/runs/<id>
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-reify run_graph_persists
+- id: bindings-derived-checked
+  statement: the reference settings screen's bindings derive from the intent, pass all three checks, and match the vendored reference binding-contract (self-test 10/10)
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-bind bindings_derived
+- id: ambiguity-refused
+  statement: an intent whose step offers two commands to one effector leaf yields needs-authoring, not a guessed binding
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-bind ambiguity_refused
+- id: fixture-drivable
+  statement: single-select reaches present, empty, and failed through the FixtureDriver per the derived state-map
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-bind fixture_drivable

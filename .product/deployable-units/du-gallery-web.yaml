@@ -1,0 +1,7 @@
+id: du-gallery-web
+built_from: rust-graph-workspace
+deploys_system:
+- sys-gallery
+environment: production
+identity:
+  runtime: static web app (loom-web-react-gallery)

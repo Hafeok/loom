@@ -1,0 +1,23 @@
+id: wu-loom-web
+schema: 'TS package: loom-web — the DOM shim over loom-wasm (the reference mode)'
+prompt: 'Implement packages/loom-web: the web mode — the compiled loom-wasm runtime plus the DOM shim per pat-shim-table. The shim owns exactly the two things Rust cannot: native event capture (DOM listeners: click/keydown/focusin → dispatch by static table) and realisation (apply descriptor a11y-fields verbatim as ARIA attributes; realise active-motion as CSS transitions per catalog entry honouring prefers-reduced-motion). No conditional on machine state other than rendering the descriptor; no shadow state (p-shim-no-state, checked by the adapter-fidelity scan). Ships as the @loom/web npm package; version = core version.'
+model: code
+context:
+  derived_from:
+  - how:d-one-runtime
+  - how:pat-shim-table
+  - domain:e-component-instance
+  - domain:rm-descriptor
+  frozen: true
+produces:
+  artifact: 'TS package: the loom-web DOM shim (reference mode)'
+  path: packages/loom-web/src/shim.ts
+trace:
+  what: sys-loom-runtime web mode
+  behaviour: t-native-input → cmd-dispatch-event by table; rm-descriptor → ARIA/CSS realisation (f-component-interaction)
+  why:
+  - d-one-runtime
+  - p-shim-no-state
+  - p-one-version
+  - pat-shim-table
+  structure: mode layer above loom-wasm (phase 5)

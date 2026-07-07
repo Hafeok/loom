@@ -1,0 +1,44 @@
+id: rm-catalog-inventory-projector
+projects_for: rm-catalog-inventory
+folds:
+- ev-bundle-loaded
+- ev-bundle-rejected
+over:
+- e-bundle
+logic:
+  initial:
+    status: empty
+    loaded: 0
+    failed: 0
+  apply:
+  - on: ev-bundle-loaded
+    set:
+      status: present
+      loaded: "=view.loaded + 1"
+  - on: ev-bundle-rejected
+    set:
+      status: failed
+      failed: "=view.failed + 1"
+scenarios:
+- name: an empty catalog reports empty
+  given: []
+  then:
+    status: empty
+    loaded: 0
+    failed: 0
+- name: each loaded bundle raises the inventory and marks the catalog present
+  given:
+  - ev-bundle-loaded
+  - ev-bundle-loaded
+  then:
+    status: present
+    loaded: 2
+    failed: 0
+- name: a rejected bundle marks the catalog failed without counting as loaded
+  given:
+  - ev-bundle-loaded
+  - ev-bundle-rejected
+  then:
+    status: failed
+    loaded: 1
+    failed: 1

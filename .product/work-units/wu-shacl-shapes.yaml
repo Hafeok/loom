@@ -1,0 +1,22 @@
+id: wu-shacl-shapes
+schema: 'SHACL shape files: one per artifact class under shapes/, asserted against the encoding-neutral vectors'
+prompt: 'Author shapes/ — SHACL shapes for every artifact class (loom-spec''s recorded dual-encoding gap, closed per d-dual-encoding): token-graph resolution + no-cycle, machine well-formedness + overlay gating + keyboard bindings + focus post-conditions, reification-table exactly-once, motion-catalog fallback-required, mode-contract surface shapes, composition-graph and view shapes. Assert the same positive/negative fixtures that drive loom-spec''s Python oracles against these shapes: MISMATCH (an instance fails one encoding) is a bundle bug; INCOHERENCE (encodings disagree on a vector) is a contract bug and blocks release.'
+model: code
+context:
+  derived_from:
+  - how:d-dual-encoding
+  - how:r-shapes
+  - how:r-vectors
+  frozen: true
+produces:
+  artifact: SHACL shapes per artifact class + vector assertions
+  path: shapes/
+trace:
+  what: ctx-catalog load gate
+  behaviour: cmd-load-bundle validates against these on every load — ev-bundle-rejected carries their reports
+  why:
+  - d-dual-encoding
+  - p-fail-closed-load
+  - p-vectors-equivalence
+  - pat-load-gate
+  structure: shapes/ asset beside the crates (phase 1)

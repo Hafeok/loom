@@ -1,0 +1,4 @@
+id: ft-ingestion-gate
+anchors:
+- f-token-ingestion
+depth: 2

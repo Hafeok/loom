@@ -1,0 +1,19 @@
+id: wu-loom-ontology
+schema: 'Rust crate: loom-ontology — the loom: vocabulary as consts + JSON-LD contexts per bundle class'
+prompt: 'Implement crates/loom-ontology: the loom: vocabulary as typed consts, deliberately derived from loom-spec''s terms — loom:Machine, ProjectionState, OverlayState, Transition (onEvent/to/motion), Gate (blocks), ReificationRow (aioKind/context/cio), Token (three tier subclasses), binds, Motion (communicates/reducedMotionFallback), EventSurface, Descriptor, A11yField (discharges). Context objects (platform/form-factor/interaction-class) are nodes, not strings. Ship the JSON-LD contexts for every bundle class so loom-spec''s reference bundles load losslessly into RDF and round-trip back out (the phase-1 kickoff bundle).'
+model: code
+context:
+  derived_from:
+  - how:loom-app
+  - how:d-graph-primary
+  frozen: true
+produces:
+  artifact: 'Rust crate: vocabulary consts + JSON-LD contexts'
+  path: crates/loom-ontology/src/lib.rs
+trace:
+  what: ctx-catalog vocabulary
+  behaviour: every bundle load and every query speaks these terms
+  why:
+  - d-graph-primary
+  - p-views-over-graph
+  structure: loom-ontology layer of loom-app (phase 1)

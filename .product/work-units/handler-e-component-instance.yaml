@@ -1,0 +1,23 @@
+id: handler-e-component-instance
+schema: 'Rust module: machine runtime for loom-machine — pub struct LoomComponent { dispatch(event) -> DispatchOutcome, subscribe(fn(Descriptor)), mount(), unmount() }'
+prompt: 'Implement the e-component-instance aggregate slice in crates/loom-machine (+ loom-descriptor): interpret the component''s machine from loom:g/machines per pat-graph-interpreter (optional load-time table compilation; graph stays the source). dispatch(event) validates the event against the mode-contract''s event surface and the current state — overlay gating, gate suppression, focus post-conditions — firing ev-transition-fired with the transition''s motion, or ev-event-rejected; no other write path exists. mount/unmount manage lifecycle (ev-mounted/ev-unmounted). On every state change assemble the descriptor (state, slots, platform-realised a11y fields, active motion) via loom-descriptor and push to subscribers (rm-descriptor). The public surface is exactly the mode-contract (s-ffi-no-state-getter): no raw-state getter, no transition method.'
+model: code
+context:
+  derived_from:
+  - domain:e-component-instance
+  frozen: true
+  hash: sha256:d0b60918e6e0b7dc7a313838fd849d081e769828c850607cb0731d7f3553e264
+produces:
+  artifact: 'Rust module: the interpreted machine runtime behind the mode-contract surfaces'
+  path: crates/loom-machine/src/instance.rs
+trace:
+  what: e-component-instance
+  behaviour: cmd-mount/cmd-dispatch-event/cmd-unmount → ev-mounted/ev-transition-fired/ev-event-rejected/ev-unmounted (f-component-lifecycle, f-component-interaction, f-data-binding, f-verdict-reflection)
+  why:
+  - d-one-runtime
+  - d-machines-as-data
+  - p-ffi-surface-minimal
+  - p-machine-from-graph
+  - pat-graph-interpreter
+  - pat-ffi-handle
+  structure: loom-machine/loom-descriptor layer of loom-app; surfaces via if-mode-contract

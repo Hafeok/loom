@@ -1,0 +1,8 @@
+id: du-loom-web
+built_from: rust-graph-workspace
+deploys_system:
+- sys-loom-runtime
+environment: production
+identity:
+  bundle_id: '@loom/web'
+  runtime: wasm + TS shim, npm package

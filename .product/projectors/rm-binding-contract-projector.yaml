@@ -1,0 +1,117 @@
+id: rm-binding-contract-projector
+projects_for: rm-binding-contract
+folds:
+- ev-binding-derived
+- ev-binding-needs-authoring
+- ev-binding-authored
+- ev-binding-checked
+- ev-binding-rejected
+over:
+- e-binding-contract
+logic:
+  initial:
+    status: empty
+    binding: ""
+    checked: false
+  apply:
+  - on: ev-binding-derived
+    set:
+      status: present
+      binding: derived
+      checked: false
+  - on: ev-binding-needs-authoring
+    set:
+      status: loading
+      binding: needs-authoring
+      checked: false
+  - on: ev-binding-authored
+    set:
+      status: present
+      binding: authored
+      checked: false
+  - on: ev-binding-checked
+    set:
+      status: present
+      binding: checked
+      checked: true
+  - on: ev-binding-rejected
+    set:
+      status: failed
+      binding: rejected
+      checked: false
+scenarios:
+- name: no derivation yet reports empty
+  given: []
+  then:
+    status: empty
+    binding: ""
+    checked: false
+- name: a derived binding is present and awaiting its checks
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  then:
+    status: present
+    binding: derived
+    checked: false
+- name: a declared ambiguity leaves the contract loading until authored
+  given:
+  - event: ev-binding-needs-authoring
+    with:
+      leaf: leaf-cart-total
+      ambiguity: two candidate views
+      candidates: v-cart-total, v-cart-summary
+  then:
+    status: loading
+    binding: needs-authoring
+    checked: false
+- name: authoring resolves the ambiguity into a present binding
+  given:
+  - event: ev-binding-needs-authoring
+    with:
+      leaf: leaf-cart-total
+      ambiguity: two candidate views
+      candidates: v-cart-total, v-cart-summary
+  - event: ev-binding-authored
+    with:
+      leaf: leaf-cart-total
+      chosen-declaration: v-cart-total
+      authored-by: operator
+  then:
+    status: present
+    binding: authored
+    checked: false
+- name: passing its coverage checks marks the binding checked
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  - event: ev-binding-checked
+    with:
+      leaf: leaf-cart-total
+      checks-passed: state-map coverage, verdict coverage
+  then:
+    status: present
+    binding: checked
+    checked: true
+- name: a rejected binding fails the contract view
+  given:
+  - event: ev-binding-derived
+    with:
+      leaf: leaf-cart-total
+      side: sensor
+      bound-declaration: v-cart-total
+  - event: ev-binding-rejected
+    with:
+      leaf: leaf-cart-total
+      violation: state-map coverage
+      basis: projection state 'open' unwired
+  then:
+    status: failed
+    binding: rejected
+    checked: false

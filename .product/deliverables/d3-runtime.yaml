@@ -1,0 +1,28 @@
+id: d3-runtime
+feature: ft-runtime
+acceptance:
+- id: machine-equivalence-green
+  statement: the §7.4 oracle passes for every machine in loom:g/machines against its reference step's projection-states
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-oracles machine_equivalence
+- id: contract-consistency-green
+  statement: for single-select and command, the event surface equals the machine's input alphabet and the descriptor state range equals the machine's state space
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-graph contract_consistency
+- id: descriptor-shape-valid
+  statement: descriptor snapshots emitted across a full state walk validate against the component's mode-contract descriptor shape
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-descriptor descriptor_shape
+- id: undeclared-event-rejected
+  statement: dispatching an event not on the event surface returns a rejection and leaves the machine state unchanged
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-machine undeclared_event
+- id: overlay-gate-holds
+  statement: dispatching trigger-activated while loading does not open the overlay (no reachable path — the gate is a machine invariant)
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-machine overlay_gate

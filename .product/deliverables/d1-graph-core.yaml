@@ -1,0 +1,18 @@
+id: d1-graph-core
+feature: ft-graph-core
+acceptance:
+- id: bundles-load
+  statement: every loom-spec reference bundle (single-select, command, token-graph, composition containers, motion) loads through the SHACL gate into its named graph with zero violations
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-graph bundles_load
+- id: shacl-vectors-green
+  statement: shapes/ assertions pass on all encoding-neutral vectors — negative fixtures rejected, positive fixtures admitted, zero MISMATCH
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-graph shacl_vectors
+- id: queries-answer
+  statement: the blast-radius and completeness queries under queries/ return correct results on the loaded reference data (blast radius of surface.interactive includes every component whose tokens bind it)
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-graph queries_answer

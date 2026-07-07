@@ -1,0 +1,104 @@
+id: e-ingestion-decider
+decides_for: e-ingestion
+handles:
+- cmd-ingest-palette
+emits:
+- ev-palette-ingested
+- ev-palette-rejected
+evolves_from:
+- ev-palette-ingested
+- ev-palette-rejected
+rejects:
+- inv-token-set-present
+- inv-mapping-declared
+- inv-palette-already-ingested
+logic:
+  initial:
+    verdict: "none"
+    token-set: ""
+  evolve:
+  - on: ev-palette-ingested
+    set:
+      verdict: ingested
+      token-set: '=event["ingestion-id"]'
+  - on: ev-palette-rejected
+    set:
+      verdict: rejected
+      token-set: '=event["ingestion-id"]'
+  decide:
+  - on: cmd-ingest-palette
+    guards:
+    - expr: 'command["external-token-set"] != ""'
+      else_reject: inv-token-set-present
+    - expr: 'command["mapping"] != ""'
+      else_reject: inv-mapping-declared
+    - expr: '!(state["verdict"] == "ingested" && state["token-set"] == command["external-token-set"])'
+      else_reject: inv-palette-already-ingested
+    emit:
+    - event: ev-palette-ingested
+      with:
+        ingestion-id: '=command["external-token-set"]'
+        applied-mapping: '=command["mapping"]'
+scenarios:
+- name: a mapped palette passes the gate into the token graph
+  given: []
+  when:
+    command: cmd-ingest-palette
+    with:
+      external-token-set: acme-brand-2026
+      mapping: acme-to-loom-roles
+  then:
+    emit:
+    - event: ev-palette-ingested
+      with:
+        ingestion-id: acme-brand-2026
+        applied-mapping: acme-to-loom-roles
+- name: a palette without a declared mapping is rejected fail-closed (unmapped-role)
+  given: []
+  when:
+    command: cmd-ingest-palette
+    with:
+      external-token-set: acme-brand-2026
+      mapping: ""
+  then:
+    reject: inv-mapping-declared
+- name: an empty external token set is rejected
+  given: []
+  when:
+    command: cmd-ingest-palette
+    with:
+      external-token-set: ""
+      mapping: acme-to-loom-roles
+  then:
+    reject: inv-token-set-present
+- name: re-ingesting the already-adopted palette is a rejected no-op
+  given:
+  - event: ev-palette-ingested
+    with:
+      ingestion-id: acme-brand-2026
+      applied-mapping: acme-to-loom-roles
+  when:
+    command: cmd-ingest-palette
+    with:
+      external-token-set: acme-brand-2026
+      mapping: acme-to-loom-roles
+  then:
+    reject: inv-palette-already-ingested
+- name: a previously rejected palette may be re-submitted once repaired
+  given:
+  - event: ev-palette-rejected
+    with:
+      ingestion-id: acme-brand-2026
+      reason: criterion-regression
+      basis: contrast-minimum on role surface.text
+  when:
+    command: cmd-ingest-palette
+    with:
+      external-token-set: acme-brand-2026
+      mapping: acme-to-loom-roles-v2
+  then:
+    emit:
+    - event: ev-palette-ingested
+      with:
+        ingestion-id: acme-brand-2026
+        applied-mapping: acme-to-loom-roles-v2

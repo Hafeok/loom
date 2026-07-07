@@ -1,0 +1,108 @@
+id: e-bundle-decider
+decides_for: e-bundle
+handles:
+- cmd-load-bundle
+emits:
+- ev-bundle-loaded
+- ev-bundle-rejected
+evolves_from:
+- ev-bundle-loaded
+- ev-bundle-rejected
+rejects:
+- inv-known-artifact-class
+- inv-bundle-source-present
+- inv-bundle-already-resident
+logic:
+  initial:
+    shacl-status: "none"
+    bundle-id: ""
+  evolve:
+  - on: ev-bundle-loaded
+    set:
+      shacl-status: conformant
+      bundle-id: '=event["bundle-id"]'
+  - on: ev-bundle-rejected
+    set:
+      shacl-status: violated
+      bundle-id: '=event["bundle-id"]'
+  decide:
+  - on: cmd-load-bundle
+    guards:
+    - expr: 'command["bundle-path"] != ""'
+      else_reject: inv-bundle-source-present
+    - expr: 'command["artifact-class"] in ["tokens", "machines", "reification", "motion", "mode-contracts"]'
+      else_reject: inv-known-artifact-class
+    - expr: '!(state["shacl-status"] == "conformant" && state["bundle-id"] == command["bundle-path"])'
+      else_reject: inv-bundle-already-resident
+    emit:
+    - event: ev-bundle-loaded
+      with:
+        bundle-id: '=command["bundle-path"]'
+        artifact-class: '=command["artifact-class"]'
+        named-graph: '="loom:g/" + command["artifact-class"]'
+scenarios:
+- name: a conformant token bundle loads into its named graph
+  given: []
+  when:
+    command: cmd-load-bundle
+    with:
+      bundle-path: bundles/tokens.jsonld
+      artifact-class: tokens
+  then:
+    emit:
+    - event: ev-bundle-loaded
+      with:
+        bundle-id: bundles/tokens.jsonld
+        artifact-class: tokens
+        named-graph: loom:g/tokens
+- name: an unknown artifact class is rejected fail-closed
+  given: []
+  when:
+    command: cmd-load-bundle
+    with:
+      bundle-path: bundles/styles.jsonld
+      artifact-class: styles
+  then:
+    reject: inv-known-artifact-class
+- name: a bundle without a source path is rejected
+  given: []
+  when:
+    command: cmd-load-bundle
+    with:
+      bundle-path: ""
+      artifact-class: tokens
+  then:
+    reject: inv-bundle-source-present
+- name: a previously rejected bundle may be re-loaded once fixed
+  given:
+  - event: ev-bundle-rejected
+    with:
+      bundle-id: bundles/machines.jsonld
+      artifact-class: machines
+      shacl-violations: "sh:MinCountConstraintComponent on loom:onEvent"
+  when:
+    command: cmd-load-bundle
+    with:
+      bundle-path: bundles/machines.jsonld
+      artifact-class: machines
+  then:
+    emit:
+    - event: ev-bundle-loaded
+      with:
+        bundle-id: bundles/machines.jsonld
+        artifact-class: machines
+        named-graph: loom:g/machines
+- name: re-loading the already-resident bundle is a rejected no-op
+  given:
+  - event: ev-bundle-loaded
+    with:
+      bundle-id: bundles/tokens.jsonld
+      artifact-class: tokens
+      named-graph: loom:g/tokens
+  when:
+    command: cmd-load-bundle
+    with:
+      bundle-path: bundles/tokens.jsonld
+      artifact-class: tokens
+  then:
+    reject: inv-bundle-already-resident

@@ -1,0 +1,5 @@
+id: ft-runtime
+anchors:
+- f-component-lifecycle
+- f-component-interaction
+depth: 2

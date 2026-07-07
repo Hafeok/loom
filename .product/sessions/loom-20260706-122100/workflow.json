@@ -1,0 +1,10 @@
+{
+  "id": "loom-20260706-122100",
+  "product": "loom",
+  "phase": "what",
+  "agent_cli": "claude",
+  "until": "what",
+  "started_at": "2026-07-06T12:21:00.735176338+00:00",
+  "history": [],
+  "finalized": false
+}

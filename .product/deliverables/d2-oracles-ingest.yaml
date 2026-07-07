@@ -1,0 +1,23 @@
+id: d2-oracles-ingest
+feature: ft-ingestion-gate
+acceptance:
+- id: rust-python-parity
+  statement: Rust and Python oracle verdicts are identical on every shared vector — zero INCOHERENCE findings
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-oracles parity
+- id: cli-validate-works
+  statement: '`loom validate` exits 0 on the reference store and non-zero (with the shape report) on a corrupted bundle'
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-cli cli_validate
+- id: ingest-fail-closed
+  statement: the low-contrast ingestion fixture is rejected with reason criterion-regression naming measured vs required values, and its tokens are absent from loom:g/tokens afterwards
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-ingest fail_closed
+- id: ingest-happy-path
+  statement: the sample ingestion fixture yields verdict ingested and its mapped roles resolve in the semantic tier
+  status: pending
+  runner: cargo-test
+  runner_args: -p loom-ingest happy_path

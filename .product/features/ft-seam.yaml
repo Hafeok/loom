@@ -1,0 +1,8 @@
+id: ft-seam
+anchors:
+- f-reification
+- f-binding-derivation
+- f-binding-authoring
+- f-data-binding
+- f-verdict-reflection
+depth: 2

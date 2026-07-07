@@ -1,0 +1,12 @@
+id: d6-native-modes
+feature: ft-native-modes
+acceptance:
+- id: one-core-three-platforms
+  statement: the iOS and Android galleries run the same single-select machine from the same core version as web (version strings identical, machine bytes from the same crate)
+  status: pending
+- id: native-gallery-checklist
+  statement: the per-platform gallery checklist (every reference composition rendered, every state drivable, fidelity scan green) passes on loom-ios-swiftui-gallery and the Android gallery
+  status: pending
+- id: version-lockstep
+  statement: no mode package version differs from the embedded core version (release-version-lockstep-check exits 0)
+  status: pending

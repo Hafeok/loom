@@ -1,0 +1,4 @@
+id: ft-graph-core
+anchors:
+- f-bundle-load
+depth: 2

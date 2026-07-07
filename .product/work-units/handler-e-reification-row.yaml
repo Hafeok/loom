@@ -1,0 +1,21 @@
+id: handler-e-reification-row
+schema: 'Rust module: reification-table views for loom-graph — row lookup by (aio-kind, context), exactly-once validation, completeness join'
+prompt: 'Implement the e-reification-row slice in crates/loom-graph: typed views over loom:g/reification per pat-typed-row-view — row lookup by (AIO-kind, platform, form-factor, interaction-class) with context objects as nodes, not strings. SHACL enforces exactly-once on load: two rows matching one (kind, context) is an ambiguity that fails validation. Provide the §2.4 completeness CONSTRUCT (reified/unreifiable partition joined to an intent''s aios-in-context) that the §7.1 leaf-completeness oracle judges, with core unreifiable reasons (no-binding-for-context, unknown-aio-kind, capability-absent).'
+model: code
+context:
+  derived_from:
+  - domain:e-reification-row
+  frozen: true
+  hash: sha256:500281c24b7fe59258415fea5d3e1d910d674db0adf85fc779d4b0fd50e509f9
+produces:
+  artifact: 'Rust module: reification-table typed views + completeness join'
+  path: crates/loom-graph/src/reification_table.rs
+trace:
+  what: e-reification-row
+  behaviour: loaded via cmd-load-bundle; joined by the §7.1 oracle inside f-reification; projected by rm-catalog-inventory and rm-blast-radius
+  why:
+  - d-graph-primary
+  - p-views-over-graph
+  - p-fail-closed-load
+  - pat-typed-row-view
+  structure: loom-graph layer of loom-app

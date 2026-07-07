@@ -1,0 +1,8 @@
+id: du-loom-ios
+built_from: rust-graph-workspace
+deploys_system:
+- sys-loom-runtime
+environment: production
+identity:
+  bundle_id: io.github.hafeok.loom
+  runtime: XCFramework via SwiftPM (UniFFI staticlib)

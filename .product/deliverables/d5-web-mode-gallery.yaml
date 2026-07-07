@@ -1,0 +1,28 @@
+id: d5-web-mode-gallery
+feature: ft-web-mode-gallery
+acceptance:
+- id: gallery-generated
+  statement: the gallery's page list is derived by query from loom:g/mode-contracts + the reference composition-graphs — adding a bundle adds a page with no gallery code change
+  status: pending
+  runner: shell
+  runner_args: npm test --prefix apps/loom-web-react-gallery -- --run generated
+- id: all-states-drivable
+  statement: every machine state of every reference component is reachable in the gallery through dispatched declared events only
+  status: pending
+  runner: shell
+  runner_args: npm test --prefix apps/loom-web-react-gallery -- --run states
+- id: fidelity-scan-green
+  statement: the TS adapter-fidelity scan passes on loom-web-react — no un-sourced a11y attribute, no shadow state, no transition invocation
+  status: pending
+  runner: shell
+  runner_args: npm run scan --prefix tools/adapter-fidelity-ts -- ../../packages/loom-web-react
+- id: bindings-drive-gallery
+  statement: gallery pages render through the FixtureDriver and the derived bindings — the same contract the product's LiveDriver implements
+  status: pending
+  runner: shell
+  runner_args: npm test --prefix apps/loom-web-react-gallery -- --run bindings
+- id: reduced-motion-honoured
+  statement: with prefers-reduced-motion set, every animated transition uses its catalog fallback
+  status: pending
+  runner: shell
+  runner_args: npm test --prefix apps/loom-web-react-gallery -- --run reduced-motion

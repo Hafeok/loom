@@ -1,0 +1,21 @@
+id: handler-e-mode-contract
+schema: 'Rust module: mode-contract views for loom-graph + the contract-consistency oracle facts'
+prompt: 'Implement the e-mode-contract slice in crates/loom-graph: typed views over loom:g/mode-contracts per pat-typed-row-view — event surface (with origins user|data|system), descriptor shape (state range, slots with per-state presence, a11y fields each tied to the criterion it discharges), lifecycle. Provide the facts for the contract-consistency check (loom-implementation §3.4): the event surface equals the machine''s input alphabet (no phantom events, no missing events) and the descriptor''s state range equals the machine''s state space (no stray states, no unreported states) — so a contract cannot promise the adapter a surface the behaviour doesn''t back. Shapes validate mode-contract bundles on load per mode-contract.schema.json''s SHACL twin.'
+model: code
+context:
+  derived_from:
+  - domain:e-mode-contract
+  frozen: true
+  hash: sha256:2617523a2e409e064eeafa34e6dc0ddace0a215677d032f1704f179eb46e1582
+produces:
+  artifact: 'Rust module: mode-contract typed views + contract-consistency facts'
+  path: crates/loom-graph/src/mode_contracts.rs
+trace:
+  what: e-mode-contract
+  behaviour: loaded via cmd-load-bundle; constrains e-component-instance's dispatch validation; drives the gallery's generated state-drivers
+  why:
+  - d-graph-primary
+  - d-machines-as-data
+  - p-fail-closed-load
+  - pat-typed-row-view
+  structure: loom-graph layer of loom-app; surfaces via if-mode-contract

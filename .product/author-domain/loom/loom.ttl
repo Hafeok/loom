@@ -1,0 +1,764 @@
+@prefix pf: <https://productframework.org/ns#> .
+@prefix d: <https://productframework.org/product/loom#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+d:ctx-catalog a pf:BoundedContext ;
+  rdfs:label "Design-System Catalog" ;
+  pf:ubiquitousTerm "bundle — a loadable artifact set per artifact class, validated on load" ;
+  pf:ubiquitousTerm "token graph — primitive → semantic → component, resolution acyclic" ;
+  pf:ubiquitousTerm "machine — a component's projection layer + gated interaction overlay" ;
+  pf:ubiquitousTerm "reification row — (AIO-kind, platform, form-factor, interaction-class) → component, exactly-once" ;
+  pf:ubiquitousTerm "motion entry — named meaning + duration + easing + reduced-motion fallback" ;
+  pf:ubiquitousTerm "mode-contract — a component's three adapter surfaces, derived from its machine" .
+
+d:ctx-ingestion a pf:BoundedContext ;
+  rdfs:label "Token Ingestion" ;
+  pf:ubiquitousTerm "external token set — primitive values in the source's own vocabulary, opaque to Loom" ;
+  pf:ubiquitousTerm "mapping — semantic role ← external token, the checkable seam artifact" ;
+  pf:ubiquitousTerm "criterion regression — a mapped palette failing a §2.3 token-tier criterion; grounds for rejection" ;
+  pf:ubiquitousTerm "ingested/rejected — the ingestion verdict, produced before and separate from reification" .
+
+d:ctx-reification a pf:BoundedContext ;
+  rdfs:label "Reification" ;
+  pf:ubiquitousTerm "UIIntent — the canonical inbound message (aios-in-context, page-graph, producer-extension carrying the composition-graph)" ;
+  pf:ubiquitousTerm "oracle — a deterministic §7 check producing a verdict with a basis" ;
+  pf:ubiquitousTerm "run graph — loom:g/runs/<id>, the persistent PROV-O record of one reification" ;
+  pf:ubiquitousTerm "ReificationReport — the canonical outbound message; verdict built | partial | rejected, computed by §7.7" .
+
+d:ctx-runtime a pf:BoundedContext ;
+  rdfs:label "Machine Runtime" ;
+  pf:ubiquitousTerm "component instance — one mounted machine with its current projection + overlay state" ;
+  pf:ubiquitousTerm "dispatch — the adapter's only write path; undeclared events are rejected" ;
+  pf:ubiquitousTerm "descriptor — the read-only render contract: state, slots, a11y fields, active motion" ;
+  pf:ubiquitousTerm "mode — the compiled runtime + a thin platform shim (event capture in, a11y/motion realisation out)" ;
+  pf:ubiquitousTerm "adapter — thin framework packaging over the three surfaces; carries no behaviour" .
+
+d:ctx-binding a pf:BoundedContext ;
+  rdfs:label "Binding" ;
+  pf:ubiquitousTerm "binding contract — the per-leaf derived/authored wiring, schema-checkable" ;
+  pf:ubiquitousTerm "state-map — projection state → machine data event (present → data-arrived, ...)" ;
+  pf:ubiquitousTerm "verdict-map — VerdictEvent → machine event (admitted → verdict-admitted, ...)" ;
+  pf:ubiquitousTerm "needs-authoring — the annotation floor: ambiguity surfaced, never guessed" ;
+  pf:ubiquitousTerm "driver pair — ProjectionDriver + CommandDriver; FixtureDriver (gallery) and LiveDriver (product) are the two conforming implementations" .
+
+d:e-bundle a pf:Entity ;
+  rdfs:label "Artifact Bundle" ;
+  pf:definition "A loadable artifact set for one artifact class (token bundle, machine catalog, reification table, motion catalog, mode-contracts), targeting one named graph. It enters the store only after SHACL validation on load — fail-closed; its load status and provenance are part of the catalog's record." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "bundle id (artifact class + source + version)" ;
+  pf:hasAttribute [ pf:attrName "artifact-class" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "named-graph" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "format" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "shacl-status" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "source" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "version" ; pf:attrType "string" ] .
+
+d:e-token-graph a pf:Entity ;
+  rdfs:label "Token Graph" ;
+  pf:definition "The three-tier token graph (primitive → semantic → component) with its resolution edges and criteria-discharge records. Every component token must resolve through the semantic tier to a primitive with no cycle; a cycle or dangling reference is an incoherence that fails validation (loom-spec §2)." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "distribution version" ;
+  pf:hasAttribute [ pf:attrName "version" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "criteria-discharges" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "resolution-status" ; pf:attrType "string" ] .
+
+d:e-token a pf:Entity ;
+  rdfs:label "Token" ;
+  pf:definition "One node of the token graph: a primitive (raw value, no role), a semantic (a named role binding exactly one primitive or semantic), or a component token (a component's binding of a semantic). The tier determines its reference rules; blast radius of a token change is computable by query (§2.2)." ;
+  pf:inContext d:ctx-catalog ;
+  pf:identity "token name within its tier" ;
+  pf:hasAttribute [ pf:attrName "name" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "tier" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "value" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "binds" ; pf:attrType "string" ] .
+
+d:e-machine a pf:Entity ;
+  rdfs:label "Component Machine" ;
+  pf:definition "A component's declared state machine: a projection layer over the UI step's projection-states plus an interaction overlay whose transitions are gated on declared projection states. Every interaction event has a keyboard binding in every keyboarded context (2.1.1 structural); transitions opening transient surfaces declare focus post-conditions; every transition carrying motion names a catalog entry or declares none. The machine is data — the runtime interprets it from the graph." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "component name" ;
+  pf:hasAttribute [ pf:attrName "component" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "projection-states" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "overlay-states" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "gates" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "side" ; pf:attrType "string" ] .
+
+d:e-reification-row a pf:Entity ;
+  rdfs:label "Reification Row" ;
+  pf:definition "One row of the reification table: (AIO-kind, platform, form-factor, interaction-class) → a component (CIO). Each AIO×context resolves to exactly one component — two rows matching the same pair is an ambiguity and fails validation; multiple rows for the same AIO kind across contexts is how one composition adapts responsively without forking (§3.1–3.2)." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "(aio-kind, platform, form-factor, interaction-class)" ;
+  pf:hasAttribute [ pf:attrName "aio-kind" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "platform" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "form-factor" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "interaction-class" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "cio" ; pf:attrType "string" ] .
+
+d:e-motion-entry a pf:Entity ;
+  rdfs:label "Motion Catalog Entry" ;
+  pf:definition "One named entry of the motion catalog: what it communicates, duration, easing, and a mandatory reduced-motion fallback satisfying WCAG 2.3.3. Machine transitions reference entries by name only — never ad-hoc animation; an entry without a fallback fails validation (loom-spec §5)." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "catalog name" ;
+  pf:hasAttribute [ pf:attrName "name" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "communicates" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "duration" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "easing" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "reduced-motion-fallback" ; pf:attrType "string" ] .
+
+d:e-mode-contract a pf:Entity ;
+  rdfs:label "Mode-Contract" ;
+  pf:definition "Per component, the only three surfaces an adapter may touch: the event surface (the machine's input alphabet, dispatch-only, each event carrying an origin user|data|system), the descriptor shape (state range, slots, a11y fields each tied to the criterion it discharges, active motion), and the mount/unmount lifecycle. Derived from — and checked consistent with — the component's core machine: no phantom events, no unreported states (loom-implementation §3.4)." ;
+  pf:inContext d:ctx-catalog ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "component name" ;
+  pf:hasAttribute [ pf:attrName "component" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "event-surface" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "descriptor-states" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "lifecycle" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "consistency-status" ; pf:attrType "string" ] .
+
+d:e-ingestion a pf:Entity ;
+  rdfs:label "Palette Ingestion" ;
+  pf:definition "One attempt to adopt an external palette: the external token set (opaque source vocabulary), the declared mapping onto Loom's semantic roles, and the verdict. The three checks run in order — mapping completeness (unmapped-role), resolution (unresolved-source), criteria re-run (criterion-regression) — fail-closed: a rejected palette never enters the token graph, so any palette that reaches reification has already passed every token-tier criterion." ;
+  pf:inContext d:ctx-ingestion ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "ingestion id" ;
+  pf:hasAttribute [ pf:attrName "external-token-set" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "verdict" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "rejection-reason" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "rejection-basis" ; pf:attrType "string" ] .
+
+d:e-reification-run a pf:Entity ;
+  rdfs:label "Reification Run" ;
+  pf:definition "One reification of a UIIntent: the intent as a PROV-O Entity, the run as an Activity, every §7 check verdict written to the run graph as it is produced, and the ReificationReport constructed from the graph — never assembled from memory. The run graph persists, so \"why was this AIO unreifiable last Tuesday\" is a query." ;
+  pf:inContext d:ctx-reification ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "run id (loom:g/runs/&lt;id&gt;)" ;
+  pf:hasAttribute [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "intent-ref" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "status" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "verdict" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "started-at" ; pf:attrType "date" ] .
+
+d:e-component-instance a pf:Entity ;
+  rdfs:label "Component Instance" ;
+  pf:definition "One mounted execution of a component machine: its current projection state, current overlay state, gate status, and active motion. It accepts only events declared on its mode-contract's event surface, rejects everything else, enforces overlay gating and focus post-conditions, and emits a descriptor on every state change. Identical compiled bytes decide every transition on every platform." ;
+  pf:inContext d:ctx-runtime ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "instance id (one mounted machine)" ;
+  pf:hasAttribute [ pf:attrName "machine-ref" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "projection-state" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "overlay-state" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "mounted" ; pf:attrType "boolean" ] ;
+  pf:hasAttribute [ pf:attrName "active-motion" ; pf:attrType "string" ] .
+
+d:e-binding-contract a pf:Entity ;
+  rdfs:label "Binding Contract" ;
+  pf:definition "Per composition-graph leaf, the wiring between the reified component and the owning UI step's declarations: sensor side binds the step's View with a state-map and slot-data; effector side binds a step-declared Command with a verdict-map over the returning VerdictEvent. Status moves derived | needs-authoring | authored | checked; a binding may reference only what the owning step declares (declaration sourcing), every projection state must be wired (state-map coverage), and both verdicts must be wired (verdict coverage)." ;
+  pf:inContext d:ctx-binding ;
+  pf:isAggregateRoot "true" ;
+  pf:identity "composition-graph leaf id" ;
+  pf:hasAttribute [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "side" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "view-ref" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "command-ref" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "slot-data" ; pf:attrType "string" ] ;
+  pf:hasAttribute [ pf:attrName "status" ; pf:attrType "string" ] .
+
+d:vo-transition a pf:ValueObject ;
+  rdfs:label "Transition" ;
+  pf:inContext d:ctx-catalog ;
+  pf:definition "One edge of a component machine: the event it fires on, source and target states, its projection-state gate (overlay transitions only), its motion reference (a catalog name or explicit none), its keyboard binding per keyboarded context, and — when it opens a transient surface — the focus post-condition on open and close." .
+
+d:vo-a11y-field a pf:ValueObject ;
+  rdfs:label "A11y Field" ;
+  pf:inContext d:ctx-catalog ;
+  pf:definition "One accessibility field of a descriptor (role, accessible-name, expanded, selected, live-region, focus-target), each tied to the WCAG criterion it discharges. Every a11y attribute an adapter applies must come from these fields — an adapter-authored attribute is a fidelity violation." .
+
+d:vo-slot a pf:ValueObject ;
+  rdfs:label "Slot" ;
+  pf:inContext d:ctx-catalog ;
+  pf:definition "One named composition slot a descriptor may present (trigger, spinner, option-list, empty-message, error-message), with its per-state presence. On container components, a slot also carries an admissibility rule (admitted child kinds) and cardinality (one | optional | many) per loom-spec §3.4." .
+
+d:vo-mapping-row a pf:ValueObject ;
+  rdfs:label "Mapping Row" ;
+  pf:inContext d:ctx-ingestion ;
+  pf:definition "One row of the ingestion mapping: a semantic role Loom requires ← the external token that fills it (surface.interactive ← brand/surface). The mapping is the seam between the source's vocabulary and Loom's roles, and validates against token-ingestion.schema.json." .
+
+d:vo-ui-intent a pf:ValueObject ;
+  rdfs:label "UIIntent" ;
+  pf:inContext d:ctx-reification ;
+  pf:definition "The canonical inbound message across the Reification Contract (ai-development-contracts ui-intent.schema.json): the aios-in-context, the What's page-graph, the required criteria per step, and the producer-extension carrying the intra-page composition-graph (roots, containment edges, per-view node assignment)." .
+
+d:vo-check-verdict a pf:ValueObject ;
+  rdfs:label "Check Verdict" ;
+  pf:inContext d:ctx-reification ;
+  pf:definition "One oracle's outcome within a run: which §7 check (leaf-completeness, composition, view-completeness, machine-equivalence, criteria, motion), the finding set with core reasons (no-binding-for-context, containment-not-admitted, coverage-gap, machine-mismatch, ...), and the basis. Written to the run graph as produced; the report's overall verdict is the composition of these, never asserted." .
+
+d:vo-descriptor a pf:ValueObject ;
+  rdfs:label "Descriptor" ;
+  pf:inContext d:ctx-runtime ;
+  pf:definition "The read-only render contract emitted on every state change: current state, present slots, accessibility fields realised for this platform, and the active motion (a catalogue name + phase, never an animation). The adapter renders the descriptor and nothing more — it chooses how to paint, never what to paint." .
+
+d:vo-state-map-entry a pf:ValueObject ;
+  rdfs:label "State-Map Entry" ;
+  pf:inContext d:ctx-binding ;
+  pf:definition "Sensor-side wiring: one projection state → the machine data event it fires (present → data-arrived, empty → data-empty, failed → data-failed), derived from the projection's state space. Every state the projection can exhibit must be wired — state-unwired catches the silent-failure bug." .
+
+d:vo-verdict-map-entry a pf:ValueObject ;
+  rdfs:label "Verdict-Map Entry" ;
+  pf:inContext d:ctx-binding ;
+  pf:definition "Effector-side wiring: one Build-seam VerdictEvent outcome → the machine event it fires (admitted → verdict-admitted, rejected → verdict-rejected). Both outcomes must be wired — verdict-unwired catches the unreachable failed state. The interface reflects the domain verdict, never adjudicates it." .
+
+d:cmd-load-bundle a pf:Command ;
+  rdfs:label "Load Bundle" ;
+  pf:inContext d:ctx-catalog ;
+  pf:targets d:e-bundle ;
+  pf:emits d:ev-bundle-loaded ;
+  pf:emits d:ev-bundle-rejected ;
+  pf:hasField [ pf:attrName "bundle-path" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "artifact-class" ; pf:attrType "string" ] .
+
+d:cmd-ingest-palette a pf:Command ;
+  rdfs:label "Ingest Palette" ;
+  pf:inContext d:ctx-ingestion ;
+  pf:targets d:e-ingestion ;
+  pf:emits d:ev-palette-ingested ;
+  pf:emits d:ev-palette-rejected ;
+  pf:hasField [ pf:attrName "external-token-set" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "mapping" ; pf:attrType "string" ] .
+
+d:cmd-reify-intent a pf:Command ;
+  rdfs:label "Reify Intent" ;
+  pf:inContext d:ctx-reification ;
+  pf:targets d:e-reification-run ;
+  pf:emits d:ev-run-started ;
+  pf:emits d:ev-intent-rejected ;
+  pf:hasField [ pf:attrName "intent" ; pf:attrType "string" ] .
+
+d:cmd-record-verdict a pf:Command ;
+  rdfs:label "Record Check Verdict" ;
+  pf:inContext d:ctx-reification ;
+  pf:targets d:e-reification-run ;
+  pf:emits d:ev-check-verdict-recorded ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "check" ; pf:attrType "string" ] .
+
+d:cmd-emit-report a pf:Command ;
+  rdfs:label "Emit Report" ;
+  pf:inContext d:ctx-reification ;
+  pf:targets d:e-reification-run ;
+  pf:emits d:ev-report-emitted ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] .
+
+d:cmd-mount a pf:Command ;
+  rdfs:label "Mount" ;
+  pf:inContext d:ctx-runtime ;
+  pf:targets d:e-component-instance ;
+  pf:emits d:ev-mounted ;
+  pf:hasField [ pf:attrName "machine-ref" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "context-of-use" ; pf:attrType "string" ] .
+
+d:cmd-dispatch-event a pf:Command ;
+  rdfs:label "Dispatch Event" ;
+  pf:inContext d:ctx-runtime ;
+  pf:targets d:e-component-instance ;
+  pf:emits d:ev-transition-fired ;
+  pf:emits d:ev-event-rejected ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "event" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "origin" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "payload" ; pf:attrType "string" ] .
+
+d:cmd-unmount a pf:Command ;
+  rdfs:label "Unmount" ;
+  pf:inContext d:ctx-runtime ;
+  pf:targets d:e-component-instance ;
+  pf:emits d:ev-unmounted ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] .
+
+d:cmd-derive-bindings a pf:Command ;
+  rdfs:label "Derive Bindings" ;
+  pf:inContext d:ctx-binding ;
+  pf:targets d:e-binding-contract ;
+  pf:emits d:ev-binding-derived ;
+  pf:emits d:ev-binding-needs-authoring ;
+  pf:hasField [ pf:attrName "intent-ref" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "composition-graph" ; pf:attrType "string" ] .
+
+d:cmd-author-binding a pf:Command ;
+  rdfs:label "Author Binding" ;
+  pf:inContext d:ctx-binding ;
+  pf:targets d:e-binding-contract ;
+  pf:emits d:ev-binding-authored ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "chosen-declaration" ; pf:attrType "string" ] .
+
+d:cmd-check-binding a pf:Command ;
+  rdfs:label "Check Binding" ;
+  pf:inContext d:ctx-binding ;
+  pf:targets d:e-binding-contract ;
+  pf:emits d:ev-binding-checked ;
+  pf:emits d:ev-binding-rejected ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] .
+
+d:ev-bundle-loaded a pf:Event ;
+  rdfs:label "Bundle Loaded" ;
+  pf:inContext d:ctx-catalog ;
+  pf:changes d:e-bundle ;
+  pf:hasField [ pf:attrName "bundle-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "artifact-class" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "named-graph" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "triple-count" ; pf:attrType "integer" ] .
+
+d:ev-bundle-rejected a pf:Event ;
+  rdfs:label "Bundle Rejected" ;
+  pf:inContext d:ctx-catalog ;
+  pf:changes d:e-bundle ;
+  pf:hasField [ pf:attrName "bundle-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "artifact-class" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "shacl-violations" ; pf:attrType "string" ] .
+
+d:ev-palette-ingested a pf:Event ;
+  rdfs:label "Palette Ingested" ;
+  pf:inContext d:ctx-ingestion ;
+  pf:changes d:e-ingestion ;
+  pf:hasField [ pf:attrName "ingestion-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "applied-mapping" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "criteria-measurements" ; pf:attrType "string" ] .
+
+d:ev-palette-rejected a pf:Event ;
+  rdfs:label "Palette Rejected" ;
+  pf:inContext d:ctx-ingestion ;
+  pf:changes d:e-ingestion ;
+  pf:hasField [ pf:attrName "ingestion-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "reason" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "basis" ; pf:attrType "string" ] .
+
+d:ev-run-started a pf:Event ;
+  rdfs:label "Run Started" ;
+  pf:inContext d:ctx-reification ;
+  pf:changes d:e-reification-run ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "intent-ref" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "view-roots" ; pf:attrType "string" ] .
+
+d:ev-intent-rejected a pf:Event ;
+  rdfs:label "Intent Rejected" ;
+  pf:inContext d:ctx-reification ;
+  pf:changes d:e-reification-run ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "violations" ; pf:attrType "string" ] .
+
+d:ev-check-verdict-recorded a pf:Event ;
+  rdfs:label "Check Verdict Recorded" ;
+  pf:inContext d:ctx-reification ;
+  pf:changes d:e-reification-run ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "check" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "findings" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "outcome" ; pf:attrType "string" ] .
+
+d:ev-report-emitted a pf:Event ;
+  rdfs:label "Report Emitted" ;
+  pf:inContext d:ctx-reification ;
+  pf:changes d:e-reification-run ;
+  pf:hasField [ pf:attrName "run-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "verdict" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "reified-count" ; pf:attrType "integer" ] ;
+  pf:hasField [ pf:attrName "unreifiable-count" ; pf:attrType "integer" ] .
+
+d:ev-mounted a pf:Event ;
+  rdfs:label "Instance Mounted" ;
+  pf:inContext d:ctx-runtime ;
+  pf:changes d:e-component-instance ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "machine-ref" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "initial-state" ; pf:attrType "string" ] .
+
+d:ev-transition-fired a pf:Event ;
+  rdfs:label "Transition Fired" ;
+  pf:inContext d:ctx-runtime ;
+  pf:changes d:e-component-instance ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "event" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "origin" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "from-state" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "to-state" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "motion" ; pf:attrType "string" ] .
+
+d:ev-event-rejected a pf:Event ;
+  rdfs:label "Event Rejected" ;
+  pf:inContext d:ctx-runtime ;
+  pf:changes d:e-component-instance ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "event" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "reason" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "current-state" ; pf:attrType "string" ] .
+
+d:ev-unmounted a pf:Event ;
+  rdfs:label "Instance Unmounted" ;
+  pf:inContext d:ctx-runtime ;
+  pf:changes d:e-component-instance ;
+  pf:hasField [ pf:attrName "instance-id" ; pf:attrType "string" ] .
+
+d:ev-binding-derived a pf:Event ;
+  rdfs:label "Binding Derived" ;
+  pf:inContext d:ctx-binding ;
+  pf:changes d:e-binding-contract ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "side" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "bound-declaration" ; pf:attrType "string" ] .
+
+d:ev-binding-needs-authoring a pf:Event ;
+  rdfs:label "Binding Needs Authoring" ;
+  pf:inContext d:ctx-binding ;
+  pf:changes d:e-binding-contract ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "ambiguity" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "candidates" ; pf:attrType "string" ] .
+
+d:ev-binding-authored a pf:Event ;
+  rdfs:label "Binding Authored" ;
+  pf:inContext d:ctx-binding ;
+  pf:changes d:e-binding-contract ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "chosen-declaration" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "authored-by" ; pf:attrType "string" ] .
+
+d:ev-binding-checked a pf:Event ;
+  rdfs:label "Binding Checked" ;
+  pf:inContext d:ctx-binding ;
+  pf:changes d:e-binding-contract ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "checks-passed" ; pf:attrType "string" ] .
+
+d:ev-binding-rejected a pf:Event ;
+  rdfs:label "Binding Rejected" ;
+  pf:inContext d:ctx-binding ;
+  pf:changes d:e-binding-contract ;
+  pf:hasField [ pf:attrName "leaf" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "violation" ; pf:attrType "string" ] ;
+  pf:hasField [ pf:attrName "basis" ; pf:attrType "string" ] .
+
+d:rm-catalog-inventory a pf:ReadModel ;
+  rdfs:label "Catalog Inventory" ;
+  pf:projects d:e-bundle ;
+  pf:projects d:e-token-graph ;
+  pf:projects d:e-machine ;
+  pf:projects d:e-reification-row ;
+  pf:projects d:e-motion-entry ;
+  pf:projects d:e-mode-contract ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-blast-radius a pf:ReadModel ;
+  rdfs:label "Token Blast Radius" ;
+  pf:projects d:e-token ;
+  pf:projects d:e-reification-row ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-ingestion-report a pf:ReadModel ;
+  rdfs:label "Ingestion Report" ;
+  pf:projects d:e-ingestion ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-run-status a pf:ReadModel ;
+  rdfs:label "Run Status" ;
+  pf:projects d:e-reification-run ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-reification-report a pf:ReadModel ;
+  rdfs:label "Reification Report" ;
+  pf:projects d:e-reification-run ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-descriptor a pf:ReadModel ;
+  rdfs:label "Descriptor Stream" ;
+  pf:projects d:e-component-instance ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:rm-binding-contract a pf:ReadModel ;
+  rdfs:label "Binding Contract View" ;
+  pf:projects d:e-binding-contract ;
+  pf:hasState "loading" ;
+  pf:hasState "present" ;
+  pf:hasState "empty" ;
+  pf:hasState "failed" .
+
+d:ui-gallery-index a pf:WireframeStep ;
+  rdfs:label "Gallery Index" ;
+  pf:surfaces [ pf:projection d:rm-catalog-inventory ; pf:typedAs d:aio-gallery-catalog-browser ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-catalog-inventory ; pf:smState "loading" ; pf:smMeaning "The store is being queried for composition-graphs and mode-contracts; the page list is on its way." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-catalog-inventory ; pf:smState "present" ; pf:smMeaning "Every component in the catalog is listed with its states and declared events — pick one to drive it." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-catalog-inventory ; pf:smState "empty" ; pf:smMeaning "No bundles are loaded; the gallery has nothing to show until core's reference bundles are loaded." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-catalog-inventory ; pf:smState "failed" ; pf:smMeaning "The store could not be queried; the gallery cannot build its page list." ] ;
+  pf:transitionsTo d:ui-component-stage ;
+  pf:referencesContent [ pf:contentKey "gallery.index.heading" ; pf:role "heading" ] ;
+  pf:referencesContent [ pf:contentKey "gallery.index.empty" ; pf:role "empty-message" ] ;
+  pf:referencesContent [ pf:contentKey "gallery.index.error" ; pf:role "error-message" ] .
+
+d:ui-component-stage a pf:WireframeStep ;
+  rdfs:label "Component Stage" ;
+  pf:surfaces [ pf:projection d:rm-descriptor ; pf:typedAs d:aio-descriptor-stage ] ;
+  pf:offers [ pf:command d:cmd-dispatch-event ; pf:typedAs d:aio-state-driver ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-descriptor ; pf:smState "loading" ; pf:smMeaning "The instance is mounting; the machine has not yet emitted its first descriptor." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-descriptor ; pf:smState "present" ; pf:smMeaning "The live descriptor — current state, slots, a11y fields, active motion — rendered exactly as the product would render it." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-descriptor ; pf:smState "empty" ; pf:smMeaning "No component is mounted on the stage; pick one from the index." ] ;
+  pf:stateMeaning [ pf:smProjection d:rm-descriptor ; pf:smState "failed" ; pf:smMeaning "The instance could not be mounted (machine missing from the store or mode-contract inconsistent); the stage shows the failure basis." ] ;
+  pf:transitionsTo d:ui-gallery-index ;
+  pf:mustSatisfy d:2.1.1-keyboard ;
+  pf:mustSatisfy d:2.4.3-focus-order ;
+  pf:mustSatisfy d:4.1.2-name-role-value ;
+  pf:mustSatisfy d:4.1.3-status-messages ;
+  pf:referencesContent [ pf:contentKey "gallery.stage.heading" ; pf:role "heading" ] ;
+  pf:referencesContent [ pf:contentKey "gallery.stage.empty" ; pf:role "empty-message" ] ;
+  pf:referencesContent [ pf:contentKey "gallery.stage.error" ; pf:role "error-message" ] ;
+  pf:referencesContent [ pf:contentKey "gallery.stage.help" ; pf:role "help" ] .
+
+d:f-bundle-load a pf:Flow ;
+  rdfs:label "Bundle Load" ;
+  pf:contains d:t-operator-load ;
+  pf:contains d:cmd-load-bundle ;
+  pf:contains d:ev-bundle-loaded ;
+  pf:contains d:rm-catalog-inventory ;
+  pf:systemOf d:sys-loom-cli .
+
+d:f-token-ingestion a pf:Flow ;
+  rdfs:label "Token Ingestion" ;
+  pf:contains d:t-design-source-export ;
+  pf:contains d:cmd-ingest-palette ;
+  pf:contains d:ev-palette-ingested ;
+  pf:contains d:rm-ingestion-report ;
+  pf:systemOf d:sys-loom-cli .
+
+d:f-reification a pf:Flow ;
+  rdfs:label "Reification Run" ;
+  pf:contains d:t-product-cli-reify ;
+  pf:contains d:cmd-reify-intent ;
+  pf:contains d:ev-run-started ;
+  pf:contains d:t-oracle-sequencer ;
+  pf:contains d:cmd-record-verdict ;
+  pf:contains d:ev-check-verdict-recorded ;
+  pf:contains d:t-report-assembler ;
+  pf:contains d:cmd-emit-report ;
+  pf:contains d:ev-report-emitted ;
+  pf:contains d:rm-reification-report ;
+  pf:systemOf d:sys-loom-cli .
+
+d:f-binding-derivation a pf:Flow ;
+  rdfs:label "Binding Derivation" ;
+  pf:contains d:t-operator-bind ;
+  pf:contains d:cmd-derive-bindings ;
+  pf:contains d:ev-binding-derived ;
+  pf:contains d:t-binding-checker ;
+  pf:contains d:cmd-check-binding ;
+  pf:contains d:ev-binding-checked ;
+  pf:contains d:rm-binding-contract ;
+  pf:systemOf d:sys-loom-cli .
+
+d:f-binding-authoring a pf:Flow ;
+  rdfs:label "Binding Authoring" ;
+  pf:contains d:t-binding-author ;
+  pf:contains d:cmd-author-binding ;
+  pf:contains d:ev-binding-authored ;
+  pf:contains d:t-binding-checker ;
+  pf:contains d:cmd-check-binding ;
+  pf:contains d:ev-binding-checked ;
+  pf:contains d:rm-binding-contract ;
+  pf:systemOf d:sys-loom-cli .
+
+d:f-component-lifecycle a pf:Flow ;
+  rdfs:label "Component Lifecycle" ;
+  pf:contains d:t-adapter-mount ;
+  pf:contains d:cmd-mount ;
+  pf:contains d:ev-mounted ;
+  pf:contains d:t-adapter-unmount ;
+  pf:contains d:cmd-unmount ;
+  pf:contains d:ev-unmounted ;
+  pf:contains d:rm-descriptor ;
+  pf:systemOf d:sys-loom-runtime .
+
+d:f-component-interaction a pf:Flow ;
+  rdfs:label "Component Interaction" ;
+  pf:contains d:t-native-input ;
+  pf:contains d:cmd-dispatch-event ;
+  pf:contains d:ev-transition-fired ;
+  pf:contains d:rm-descriptor ;
+  pf:systemOf d:sys-loom-runtime .
+
+d:f-data-binding a pf:Flow ;
+  rdfs:label "Data Binding Feed" ;
+  pf:contains d:t-projection-driver ;
+  pf:contains d:cmd-dispatch-event ;
+  pf:contains d:ev-transition-fired ;
+  pf:contains d:rm-descriptor ;
+  pf:systemOf d:sys-loom-runtime .
+
+d:f-verdict-reflection a pf:Flow ;
+  rdfs:label "Verdict Reflection" ;
+  pf:contains d:t-verdict-return ;
+  pf:contains d:cmd-dispatch-event ;
+  pf:contains d:ev-transition-fired ;
+  pf:contains d:rm-descriptor ;
+  pf:systemOf d:sys-loom-runtime .
+
+d:f-gallery-walkthrough a pf:Flow ;
+  rdfs:label "Gallery Walkthrough" ;
+  pf:contains d:ui-gallery-index ;
+  pf:contains d:ui-component-stage ;
+  pf:contains d:t-gallery-user ;
+  pf:contains d:cmd-dispatch-event ;
+  pf:contains d:ev-transition-fired ;
+  pf:contains d:rm-descriptor ;
+  pf:systemOf d:sys-gallery .
+
+d:aio-gallery-catalog-browser a pf:Aio ;
+  rdfs:label "Catalog Browser" .
+
+d:aio-descriptor-stage a pf:Aio ;
+  rdfs:label "Descriptor Stage" .
+
+d:aio-state-driver a pf:Aio ;
+  rdfs:label "State Driver" .
+
+d:ar-gallery a pf:ApplicationRoot ;
+  rdfs:label "Gallery Root" ;
+  pf:navigatesFromRoot d:ui-gallery-index ;
+  pf:navigatesFromRoot d:ui-component-stage .
+
+d:sys-loom-cli a pf:System ;
+  rdfs:label "loom-cli" ;
+  pf:systemKind "cli" ;
+  pf:purpose "The `loom` binary — the product-cli-facing surface: load and validate bundles, ingest palettes, reify intents, emit reports, derive and check bindings, and answer the §8 queries over the embedded Oxigraph store." ;
+  pf:referencesDomain d:ctx-catalog ;
+  pf:referencesDomain d:ctx-ingestion ;
+  pf:referencesDomain d:ctx-reification ;
+  pf:referencesDomain d:ctx-binding .
+
+d:sys-loom-runtime a pf:System ;
+  rdfs:label "loom-runtime" ;
+  pf:systemKind "service" ;
+  pf:purpose "The headless machine runtime — one compiled Rust core (wasm via wasm-bindgen for loom-web; static libraries via UniFFI for loom-ios/loom-android) exposing exactly the mode-contract surfaces: dispatch(event), the descriptor observable, mount/unmount. Modes are this runtime plus a thin platform shim; adapters package it per framework." ;
+  pf:referencesDomain d:ctx-catalog ;
+  pf:referencesDomain d:ctx-runtime ;
+  pf:referencesDomain d:ctx-binding .
+
+d:sys-gallery a pf:System ;
+  rdfs:label "Conformance Gallery" ;
+  pf:systemKind "application" ;
+  pf:purpose "The per-adapter runnable gallery (loom-web-react-gallery first): pages generated from core's composition-graphs and mode-contracts, rendering core's reference data through the adapter and the FixtureDriver — the visual/interactive counterpart to the oracles, and the acceptance test for the mode-contract itself." ;
+  pf:rootsAt d:ar-gallery ;
+  pf:referencesDomain d:ctx-catalog ;
+  pf:referencesDomain d:ctx-runtime ;
+  pf:referencesDomain d:ctx-binding .
+
+d:t-operator-load a pf:Trigger ;
+  rdfs:label "Operator loads a bundle" ;
+  pf:source "user" ;
+  pf:issues d:cmd-load-bundle .
+
+d:t-design-source-export a pf:Trigger ;
+  rdfs:label "Designer submits a palette" ;
+  pf:source "user" ;
+  pf:issues d:cmd-ingest-palette .
+
+d:t-product-cli-reify a pf:Trigger ;
+  rdfs:label "Product-cli requests reification" ;
+  pf:source "external" ;
+  pf:issues d:cmd-reify-intent .
+
+d:t-oracle-sequencer a pf:Trigger ;
+  rdfs:label "Oracle sequencer advances the run" ;
+  pf:source "automated" ;
+  pf:issues d:cmd-record-verdict ;
+  pf:watches d:rm-run-status .
+
+d:t-report-assembler a pf:Trigger ;
+  rdfs:label "Report assembler fires on completion" ;
+  pf:source "automated" ;
+  pf:issues d:cmd-emit-report ;
+  pf:watches d:rm-run-status .
+
+d:t-operator-bind a pf:Trigger ;
+  rdfs:label "Operator derives bindings" ;
+  pf:source "user" ;
+  pf:issues d:cmd-derive-bindings .
+
+d:t-binding-author a pf:Trigger ;
+  rdfs:label "Human authors an ambiguous binding" ;
+  pf:source "user" ;
+  pf:issues d:cmd-author-binding .
+
+d:t-binding-checker a pf:Trigger ;
+  rdfs:label "Checker validates derived/authored bindings" ;
+  pf:source "automated" ;
+  pf:issues d:cmd-check-binding ;
+  pf:watches d:rm-binding-contract .
+
+d:t-adapter-mount a pf:Trigger ;
+  rdfs:label "Adapter mounts a component" ;
+  pf:source "external" ;
+  pf:issues d:cmd-mount .
+
+d:t-adapter-unmount a pf:Trigger ;
+  rdfs:label "Adapter unmounts a component" ;
+  pf:source "external" ;
+  pf:issues d:cmd-unmount .
+
+d:t-native-input a pf:Trigger ;
+  rdfs:label "End user acts on native input" ;
+  pf:source "user" ;
+  pf:issues d:cmd-dispatch-event .
+
+d:t-projection-driver a pf:Trigger ;
+  rdfs:label "ProjectionDriver pushes data state" ;
+  pf:source "external" ;
+  pf:issues d:cmd-dispatch-event .
+
+d:t-verdict-return a pf:Trigger ;
+  rdfs:label "Build-seam verdict returns" ;
+  pf:source "external" ;
+  pf:issues d:cmd-dispatch-event .
+
+d:t-gallery-user a pf:Trigger ;
+  rdfs:label "Gallery visitor drives a state" ;
+  pf:source "user" ;
+  pf:issues d:cmd-dispatch-event .
+
+d:loom a pf:Product ;
+  rdfs:label "Loom" ;
+  pf:purpose "Deliver one behavioural truth — machines, tokens, reification, motion — natively on every platform and idiomatically in every framework, with conformance checked by oracle, never claimed." ;
+  pf:ownsDomain d:ctx-catalog ;
+  pf:ownsDomain d:ctx-ingestion ;
+  pf:ownsDomain d:ctx-reification ;
+  pf:ownsDomain d:ctx-runtime ;
+  pf:ownsDomain d:ctx-binding ;
+  pf:ownsSystem d:sys-loom-cli ;
+  pf:ownsSystem d:sys-loom-runtime ;
+  pf:ownsSystem d:sys-gallery ;
+  pf:versionedAs "0.1.0" .
+

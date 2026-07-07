@@ -1,0 +1,21 @@
+id: handler-e-motion-entry
+schema: 'Rust module: motion-catalog views for loom-graph — entry lookup by name, reduced-motion fallback, §7.6 dangling-reference facts'
+prompt: 'Implement the e-motion-entry slice in crates/loom-graph: typed views over loom:g/motion per pat-typed-row-view — name, communicates, duration, easing, reduced-motion fallback. SHACL enforces on load that every entry declares a reduced-motion fallback satisfying WCAG 2.3.3 (an entry without one fails validation). Provide the facts for the §7.6 motion check: every machine transition carrying motion references an existing entry by name; every non-motion transition declares none explicitly — a dangling reference is an incoherence caught before reification, not a verdict demotion.'
+model: code
+context:
+  derived_from:
+  - domain:e-motion-entry
+  frozen: true
+  hash: sha256:ff4f8083e7611ba63c6bc32dbccbde803a7198eeddcbff3d6dc55bd411ec4c84
+produces:
+  artifact: 'Rust module: motion-catalog typed views + §7.6 fact gathering'
+  path: crates/loom-graph/src/motion.rs
+trace:
+  what: e-motion-entry
+  behaviour: loaded via cmd-load-bundle; judged by the §7.6 oracle inside f-reification; realised by shims from descriptor active-motion
+  why:
+  - d-graph-primary
+  - p-fail-closed-load
+  - pat-typed-row-view
+  - pat-load-gate
+  structure: loom-graph layer of loom-app

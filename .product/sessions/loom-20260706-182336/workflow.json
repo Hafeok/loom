@@ -1,0 +1,21 @@
+{
+  "id": "loom-20260706-182336",
+  "product": "loom",
+  "phase": "build",
+  "agent_cli": "claude",
+  "until": "build",
+  "started_at": "2026-07-06T18:23:36.073639035+00:00",
+  "history": [
+    {
+      "from": "what",
+      "to": "how",
+      "at": "2026-07-06T18:24:13.717953681+00:00"
+    },
+    {
+      "from": "how",
+      "to": "build",
+      "at": "2026-07-06T18:38:23.567069152+00:00"
+    }
+  ],
+  "finalized": true
+}

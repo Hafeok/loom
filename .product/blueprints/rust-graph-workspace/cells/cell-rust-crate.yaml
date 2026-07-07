@@ -1,0 +1,27 @@
+id: cell-rust-crate
+name: cell-rust-crate
+blueprint: rust-graph-workspace
+applies_when: an aggregate from the What graph needs its typed-view slice realised
+  in crates/loom-graph — a maintained SPARQL CONSTRUCT under queries/, a serde row
+  struct, a typed view built From<Row>, and SHACL shapes under shapes/ enforcing
+  well-formedness on load (pat-typed-row-view + pat-load-gate).
+slots:
+- name: entity
+  kind: domain
+  dispatch: name the aggregate
+  capture: which entity?
+  audit: entity exists in the domain model
+cells:
+- id: handler
+  artifact: 'Rust module: typed views over the entity''s named graph per
+    pat-typed-row-view — query file under queries/, row struct + typed view in
+    the module, SHACL shapes under shapes/; no inline SPARQL (s-queries-maintained)'
+  model: code
+  derived_from:
+  - domain:entity
+  path: crates/loom-graph/src/<entity>.rs
+audits:
+- id: entity-exists
+  kind: domain-conformance
+  checks: the entity slot resolves to a real domain entity
+  protects: entity slot

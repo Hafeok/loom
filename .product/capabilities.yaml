@@ -1,0 +1,17 @@
+# Worker capability catalog (the SPMC Model layer) — loom builds on the Spark.
+# `worker` capabilities dispatch to the OpenAI-compatible endpoint at
+# LITELLM_BASE_URL; for the DGX Spark box that is http://<spark-ip>:8000/v1
+# (the /v1 suffix is required — the dispatcher appends only /chat/completions).
+# model_identifier must be the wire id the endpoint answers to.
+capabilities:
+# Day residency on the Spark: Qwen3.6-35B-A3B MoE served FP8, 64k context.
+- id: kiln-coder-light
+  endpoint: worker
+  model_identifier: qwen3.6-35b
+  tier: 1
+# Off-box apex — Opus-class escalation rung for foundational stakes or
+# repeated failure; never the default binding.
+- id: claude-code
+  endpoint: claude
+  model_identifier: claude-opus-4-8
+  tier: 4

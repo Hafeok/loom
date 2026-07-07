@@ -1,0 +1,21 @@
+id: handler-e-binding-contract
+schema: 'Rust module: binding contract for loom-bind — pub fn derive(intent, graph) -> Vec&lt;Binding&gt;; pub fn check(binding) -> CheckOutcome; traits ProjectionDriver / CommandDriver + FixtureDriver'
+prompt: 'Implement the e-binding-contract aggregate slice in crates/loom-bind: derive bindings from the What per composition-graph leaf — sensor: bind the owning step''s declared View, derive the state-map from the projection''s state space, name slot-data; effector: bind the step-declared Command and wire the verdict-map. Refuse ambiguity (ev-binding-needs-authoring) rather than guessing; accept authored choices (ev-binding-authored) and check them identically. The three MUST checks: declaration sourcing (binding-not-declared), state-map coverage (state-unwired), verdict coverage (verdict-unwired) — ev-binding-checked / ev-binding-rejected with basis. Host the ProjectionDriver/CommandDriver trait pair (if-driver-pair) and ship FixtureDriver as the gallery''s conforming implementation; validate against binding-contract.schema.json.'
+model: code
+context:
+  derived_from:
+  - domain:e-binding-contract
+  frozen: true
+  hash: sha256:692cafc7b26a6a76516a1f3257ed8acd6112dc11f655222483e2655df79fe6d4
+produces:
+  artifact: 'Rust module: binding derive/check + the driver trait pair + FixtureDriver'
+  path: crates/loom-bind/src/contract.rs
+trace:
+  what: e-binding-contract
+  behaviour: cmd-derive-bindings/cmd-author-binding/cmd-check-binding → ev-binding-* (f-binding-derivation, f-binding-authoring)
+  why:
+  - d-graph-primary
+  - d-canonical-contracts
+  - p-seam-schema-validated
+  - pat-typed-row-view
+  structure: loom-reify/loom-bind layer of loom-app; surfaces via if-driver-pair

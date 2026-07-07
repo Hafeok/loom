@@ -1,0 +1,22 @@
+id: wu-loom-wasm
+schema: 'Rust crate: loom-wasm — wasm-bindgen twin of the LoomComponent handle'
+prompt: 'Implement crates/loom-wasm: the wasm-bindgen twin of loom-ffi''s surface per pat-ffi-handle — a LoomComponent handle exporting dispatch(event), a descriptor subscription (snapshot-first; diff only if a gallery shows it necessary), mount, unmount. Nothing else is exported: no raw-state getter, no transition function (s-ffi-no-state-getter) — the structurally-uncallable enforcement realised as the wasm surface itself. Packaged into the @loom/web npm distribution (r-dist-npm); version locked to core (p-one-version).'
+model: code
+context:
+  derived_from:
+  - how:if-mode-contract
+  - how:d-one-runtime
+  - domain:e-component-instance
+  frozen: true
+produces:
+  artifact: 'Rust crate: wasm-bindgen mode-contract surface'
+  path: crates/loom-wasm/src/lib.rs
+trace:
+  what: sys-loom-runtime web surface
+  behaviour: carries cmd-dispatch-event/cmd-mount/cmd-unmount and the rm-descriptor subscription to the web mode
+  why:
+  - d-one-runtime
+  - p-ffi-surface-minimal
+  - p-one-version
+  - pat-ffi-handle
+  structure: loom-wasm layer of loom-app (phase 5)

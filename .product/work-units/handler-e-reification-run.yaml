@@ -1,0 +1,23 @@
+id: handler-e-reification-run
+schema: 'Rust module: reification run orchestrator for loom-reify — pub fn reify(intent_json) -> Result&lt;ReificationReport, IntentRejected&gt;'
+prompt: 'Implement the e-reification-run aggregate slice in crates/loom-reify: schema-validate the canonical UIIntent against the pinned contract (ev-intent-rejected on failure), open a PROV-O run graph loom:g/runs/&lt;id&gt; (intent = Entity, run = Activity), SHACL-validate the producer-extension composition-graph, run the §7 oracles in order via loom-oracles writing each verdict to the run graph as produced (ev-check-verdict-recorded, per pat-run-recorder), then CONSTRUCT the ReificationReport, map internal booleans to canonical enums, schema-validate, and emit (ev-report-emitted). The verdict equals what the checks computed — never asserted. Serde types are generated from contracts/ (s-serde-generated); the run graph persists for historical queries.'
+model: code
+context:
+  derived_from:
+  - domain:e-reification-run
+  frozen: true
+  hash: sha256:7e0629ec557fa4df39791863b30c0fb22cfe3d510dccbd1501d914ae29fc09aa
+produces:
+  artifact: 'Rust module: the seam orchestrator — intent in, oracles, canonical report out'
+  path: crates/loom-reify/src/run.rs
+trace:
+  what: e-reification-run
+  behaviour: cmd-reify-intent → ev-run-started; cmd-record-verdict → ev-check-verdict-recorded; cmd-emit-report → ev-report-emitted (f-reification)
+  why:
+  - d-graph-primary
+  - d-canonical-contracts
+  - p-run-graph-append
+  - p-queries-fetch-oracles-judge
+  - pat-run-recorder
+  - pat-oracle-pair
+  structure: loom-reify/loom-bind layer of loom-app; surfaces via if-reification-seam and if-cli

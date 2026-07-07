@@ -1,0 +1,12 @@
+blueprint: rust-graph-workspace
+version: '0.1'
+top_decisions: []
+principles: []
+patterns: []
+application_contract:
+  id: rust-graph-workspace-app-contract
+  language: TODO
+  statements:
+  - id: example-statement
+    statement: 'TODO: a checkable invariant a verification can confirm.'
+interface_contracts: []

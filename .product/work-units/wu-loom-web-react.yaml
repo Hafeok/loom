@@ -1,0 +1,20 @@
+id: wu-loom-web-react
+schema: 'TS package: loom-web-react — the reference adapter (React hook over the mode''s three surfaces)'
+prompt: 'Implement packages/loom-web-react: the reference adapter — a useLoomComponent hook wrapping the wasm handle in React idiom. It may touch only the three mode-contract surfaces: subscribe/observe the descriptor, render it, dispatch declared events, signal mount/unmount. Every a11y attribute it applies traces to a descriptor a11y-field; it holds no local state shadowing a machine state; it maps React events to declared events by table. Thin by construction and verified by the adapter-fidelity scan — a focus-trap bug fixed in the mode must reach this adapter with no per-adapter change.'
+model: code
+context:
+  derived_from:
+  - how:if-mode-contract
+  - how:pat-shim-table
+  - domain:e-mode-contract
+  frozen: true
+produces:
+  artifact: 'TS package: React adapter hook over loom-web'
+  path: packages/loom-web-react/src/useLoomComponent.ts
+trace:
+  what: the reference adapter
+  behaviour: packages the mode's surfaces in framework idiom; adds no behaviour
+  why:
+  - p-shim-no-state
+  - p-ffi-surface-minimal
+  structure: adapter leaf above loom-web (phase 5)

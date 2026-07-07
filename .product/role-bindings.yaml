@@ -1,0 +1,27 @@
+# Role → capability bindings with escalation ladders.
+# Default rung is the Spark residency (kiln-coder-light); escalation to the
+# off-box apex is unit-atomic on repeated failure or foundational stakes.
+role_bindings:
+- role_id: implementer
+  default_capability: kiln-coder-light
+  escalation_steps:
+  - capability: claude-code
+    triggers:
+    - prior_attempts_ge_5
+    - stakes_foundational
+  active: true
+- role_id: coder
+  default_capability: kiln-coder-light
+  escalation_steps:
+  - capability: claude-code
+    triggers:
+    - prior_attempts_ge_5
+    - stakes_foundational
+  active: true
+- role_id: verifier
+  default_capability: kiln-coder-light
+  escalation_steps:
+  - capability: claude-code
+    triggers:
+    - confidence_below_0.5
+  active: true

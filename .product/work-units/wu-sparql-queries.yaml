@@ -1,0 +1,21 @@
+id: wu-sparql-queries
+schema: SPARQL query files under queries/ — the §8 mandated queries as maintained, vector-tested assets
+prompt: 'Author queries/ — each loom-spec §8 mandated query as a maintained SPARQL asset, never an ad-hoc string (s-queries-maintained): blast-radius (property-path from a token through loom:binds* to every ReificationRow/component plus touched criteria-discharge records), completeness (the reified/unreifiable partition as a CONSTRUCT over loom:g/reification joined to an intent''s aios-in-context), and the fact-gatherers for machine equivalence, view legality, and criteria discharge (the judging happens in loom-oracles per p-queries-fetch-oracles-judge). Each query is tested against the vectors.'
+model: code
+context:
+  derived_from:
+  - how:d-graph-primary
+  - how:r-queries
+  - how:s-queries-maintained
+  frozen: true
+produces:
+  artifact: Maintained SPARQL assets for the §8 queries + oracle fact-gatherers
+  path: queries/
+trace:
+  what: the §8 queryable surface
+  behaviour: backs rm-blast-radius, rm-catalog-inventory, and every oracle's fact-gathering
+  why:
+  - d-graph-primary
+  - p-queries-fetch-oracles-judge
+  - pat-typed-row-view
+  structure: queries/ asset beside the crates (phase 1)

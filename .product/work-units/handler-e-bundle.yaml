@@ -1,0 +1,22 @@
+id: handler-e-bundle
+schema: 'Rust module: bundle loader for loom-graph — pub fn load_bundle(store, class, jsonld) -> Result&lt;BundleLoaded, BundleRejected&gt;'
+prompt: 'Implement the e-bundle aggregate slice in crates/loom-graph: the load gate per pat-load-gate — parse JSON-LD against the pinned context (loom-ontology), SHACL-validate against shapes/ for the bundle''s artifact class, and atomically insert into the target named graph. Fail-closed: on any shape violation return the report and write nothing (ev-bundle-rejected); on success record provenance and return the load summary (ev-bundle-loaded). Only this crate may depend on oxigraph (s-store-single-owner). Expose typed views per pat-typed-row-view; no inline SPARQL (s-queries-maintained).'
+model: code
+context:
+  derived_from:
+  - domain:e-bundle
+  frozen: true
+  hash: sha256:5a3c6197f394b57ff1d4e2eda3cfb09175b53434dbe0d97d990b3e8942345529
+produces:
+  artifact: 'Rust module: the fail-closed bundle load gate + catalog typed views'
+  path: crates/loom-graph/src/bundle.rs
+trace:
+  what: e-bundle
+  behaviour: cmd-load-bundle → ev-bundle-loaded | ev-bundle-rejected (f-bundle-load)
+  why:
+  - d-graph-primary
+  - d-dual-encoding
+  - p-fail-closed-load
+  - pat-load-gate
+  - pat-typed-row-view
+  structure: loom-graph layer of loom-app

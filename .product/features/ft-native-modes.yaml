@@ -1,0 +1,6 @@
+id: ft-native-modes
+anchors:
+- f-component-lifecycle
+- f-verdict-reflection
+- f-gallery-walkthrough
+depth: 1

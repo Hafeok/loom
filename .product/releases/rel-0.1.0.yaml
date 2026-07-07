@@ -1,0 +1,8 @@
+id: rel-0.1.0
+features:
+- d1-graph-core
+- d2-oracles-ingest
+- d3-runtime
+- d4-seam
+- d5-web-mode-gallery
+- d6-native-modes

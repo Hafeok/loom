@@ -1,0 +1,7 @@
+id: du-loom-cli
+built_from: rust-graph-workspace
+deploys_system:
+- sys-loom-cli
+environment: production
+identity:
+  runtime: native binary (cargo install / release artifacts)

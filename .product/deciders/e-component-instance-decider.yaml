@@ -1,0 +1,203 @@
+id: e-component-instance-decider
+decides_for: e-component-instance
+handles:
+- cmd-mount
+- cmd-dispatch-event
+- cmd-unmount
+emits:
+- ev-mounted
+- ev-transition-fired
+- ev-event-rejected
+- ev-unmounted
+evolves_from:
+- ev-mounted
+- ev-transition-fired
+- ev-event-rejected
+- ev-unmounted
+rejects:
+- inv-machine-declared
+- inv-not-already-mounted
+- inv-instance-mounted
+- inv-event-on-surface
+logic:
+  initial:
+    mounted: false
+    projection-state: ""
+  evolve:
+  - on: ev-mounted
+    set:
+      mounted: true
+      projection-state: '=event["initial-state"]'
+  - on: ev-transition-fired
+    set:
+      projection-state: '=event["to-state"]'
+  - on: ev-unmounted
+    set:
+      mounted: false
+      projection-state: ""
+  decide:
+  - on: cmd-mount
+    guards:
+    - expr: 'command["machine-ref"] != ""'
+      else_reject: inv-machine-declared
+    - expr: 'state["mounted"] == false'
+      else_reject: inv-not-already-mounted
+    emit:
+    - event: ev-mounted
+      with:
+        instance-id: '=command["machine-ref"]'
+        machine-ref: '=command["machine-ref"]'
+        initial-state: initial
+  - on: cmd-dispatch-event
+    guards:
+    - expr: 'state["mounted"] == true'
+      else_reject: inv-instance-mounted
+    - expr: 'command["event"] != ""'
+      else_reject: inv-event-on-surface
+    emit:
+    - event: ev-transition-fired
+      with:
+        instance-id: '=command["instance-id"]'
+        event: '=command["event"]'
+        origin: '=command["origin"]'
+        from-state: '=state["projection-state"]'
+  - on: cmd-unmount
+    guards:
+    - expr: 'state["mounted"] == true'
+      else_reject: inv-instance-mounted
+    emit:
+    - event: ev-unmounted
+      with:
+        instance-id: '=command["instance-id"]'
+scenarios:
+- name: mounting a declared machine starts the instance in its initial state
+  given: []
+  when:
+    command: cmd-mount
+    with:
+      machine-ref: single-select
+      context-of-use: web/desktop/keyboarded
+  then:
+    emit:
+    - event: ev-mounted
+      with:
+        instance-id: single-select
+        machine-ref: single-select
+        initial-state: initial
+- name: mounting an already-mounted instance is a rejected no-op
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  when:
+    command: cmd-mount
+    with:
+      machine-ref: single-select
+      context-of-use: web/desktop/keyboarded
+  then:
+    reject: inv-not-already-mounted
+- name: a declared event on a mounted instance fires a transition from the current state
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  when:
+    command: cmd-dispatch-event
+    with:
+      instance-id: single-select
+      event: open
+      origin: keyboard
+      payload: '{}'
+  then:
+    emit:
+    - event: ev-transition-fired
+      with:
+        instance-id: single-select
+        event: open
+        origin: keyboard
+        from-state: initial
+- name: dispatch reflects the state the machine has already transitioned to
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  - event: ev-transition-fired
+    with:
+      instance-id: single-select
+      event: open
+      origin: keyboard
+      from-state: initial
+      to-state: open
+      motion: expand
+  when:
+    command: cmd-dispatch-event
+    with:
+      instance-id: single-select
+      event: select
+      origin: pointer
+      payload: '{}'
+  then:
+    emit:
+    - event: ev-transition-fired
+      with:
+        instance-id: single-select
+        event: select
+        origin: pointer
+        from-state: open
+- name: an undeclared (empty) event is rejected, not silently dropped
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  when:
+    command: cmd-dispatch-event
+    with:
+      instance-id: single-select
+      event: ""
+      origin: pointer
+      payload: '{}'
+  then:
+    reject: inv-event-on-surface
+- name: dispatching to an unmounted instance is rejected
+  given: []
+  when:
+    command: cmd-dispatch-event
+    with:
+      instance-id: single-select
+      event: open
+      origin: keyboard
+      payload: '{}'
+  then:
+    reject: inv-instance-mounted
+- name: unmounting a mounted instance releases it
+  given:
+  - event: ev-mounted
+    with:
+      instance-id: single-select
+      machine-ref: single-select
+      initial-state: initial
+  when:
+    command: cmd-unmount
+    with:
+      instance-id: single-select
+  then:
+    emit:
+    - event: ev-unmounted
+      with:
+        instance-id: single-select
+- name: unmounting an unmounted instance is rejected
+  given: []
+  when:
+    command: cmd-unmount
+    with:
+      instance-id: single-select
+  then:
+    reject: inv-instance-mounted
