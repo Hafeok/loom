@@ -1,0 +1,16 @@
+# e-motion-entry rows — every catalog entry with its fields.
+# Bindings: $graph = loom:g/motion.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?entry ?name ?communicates ?duration ?easing ?reduced_motion_fallback
+WHERE {
+  GRAPH $graph {
+    ?entry rdf:type loom:MotionEntry ;
+           loom:name ?name ;
+           loom:communicates ?communicates ;
+           loom:duration ?duration ;
+           loom:easing ?easing ;
+           loom:reducedMotionFallback ?reduced_motion_fallback .
+  }
+}

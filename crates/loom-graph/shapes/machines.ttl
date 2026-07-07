@@ -1,0 +1,74 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix loom: <http://loom.dev/ns#> .
+
+# e-machine — a component's projection layer plus gated interaction overlay.
+# The machine is data; these shapes gate what may enter loom:g/machines.
+
+loom:ComponentMachineShape
+    a sh:NodeShape ;
+    sh:targetClass loom:ComponentMachine ;
+    sh:property [
+        sh:path loom:component ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:projectionState ;
+        sh:minCount 1 ;
+    ] .
+
+loom:TransitionShape
+    a sh:NodeShape ;
+    sh:targetClass loom:Transition ;
+    sh:property [
+        sh:path loom:onEvent ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:fromState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:toState ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:carriesMotion ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] .
+
+loom:InteractionOverlayShape
+    a sh:NodeShape ;
+    sh:targetClass loom:InteractionOverlay ;
+    sh:property [
+        sh:path loom:gatedOn ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:overlayState ;
+        sh:minCount 1 ;
+    ] .
+
+loom:KeyboardBindingShape
+    a sh:NodeShape ;
+    sh:targetClass loom:KeyboardBinding ;
+    sh:property [
+        sh:path loom:context ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:event ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:key ;
+        sh:minCount 1 ;
+    ] .

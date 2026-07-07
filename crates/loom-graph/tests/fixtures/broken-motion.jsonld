@@ -1,0 +1,13 @@
+{
+  "@graph": [
+    {
+      "id": "motion:no-fallback",
+      "type": "MotionEntry",
+      "name": "no-fallback",
+      "communicates": "state-change",
+      "duration": "200ms",
+      "easing": "ease-out",
+      "reducedMotionFallback": ""
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix loom: <http://loom.dev/ns#> .
+
+# e-reification-row — (AIO-kind, platform, form-factor, interaction-class) → CIO.
+# Field presence is gated here; exactly-once ambiguity across rows is the
+# §7 Rust oracle (a cross-node constraint the shape subset does not express).
+
+loom:ReificationRowShape
+    a sh:NodeShape ;
+    sh:targetClass loom:ReificationRow ;
+    sh:property [
+        sh:path loom:aioKind ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:platform ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] ;
+    sh:property [
+        sh:path loom:formFactor ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] ;
+    sh:property [
+        sh:path loom:interactionClass ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] ;
+    sh:property [
+        sh:path loom:cio ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] .

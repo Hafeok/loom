@@ -1,0 +1,40 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix loom: <http://loom.dev/ns#> .
+
+# loom-spec §2 — three-tier token graph.
+# Primitive tokens carry a value; semantic and component tokens must bind
+# onward (resolution is asserted here; acyclicity is the §7 Rust oracle).
+
+loom:PrimitiveTokenShape
+    a sh:NodeShape ;
+    sh:targetClass loom:PrimitiveToken ;
+    sh:property [
+        sh:path loom:value ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] .
+
+loom:SemanticTokenShape
+    a sh:NodeShape ;
+    sh:targetClass loom:SemanticToken ;
+    sh:property [
+        sh:path loom:binds ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] .
+
+loom:ComponentTokenShape
+    a sh:NodeShape ;
+    sh:targetClass loom:ComponentToken ;
+    sh:property [
+        sh:path loom:binds ;
+        sh:minCount 1 ;
+        sh:nodeKind sh:IRI ;
+    ] ;
+    sh:property [
+        sh:path loom:component ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] .

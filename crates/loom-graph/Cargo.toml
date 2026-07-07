@@ -1,0 +1,14 @@
+[package]
+name = "loom-graph"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loom graph core: embedded Oxigraph store, fail-closed SHACL load gate, typed views, PROV-O run recording."
+
+[dependencies]
+loom-ontology = { path = "../loom-ontology" }
+oxigraph.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+regex.workspace = true

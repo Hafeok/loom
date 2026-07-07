@@ -1,0 +1,15 @@
+# rm-catalog-inventory — every bundle load record with status and size.
+# Bindings: $graph = loom:g/catalog.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?bundle_id ?artifact_class ?shacl_status ?triple_count
+WHERE {
+  GRAPH $graph {
+    ?record rdf:type loom:BundleRecord ;
+            loom:bundleId ?bundle_id ;
+            loom:artifactClass ?artifact_class ;
+            loom:shaclStatus ?shacl_status .
+    OPTIONAL { ?record loom:tripleCount ?triple_count }
+  }
+}

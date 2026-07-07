@@ -1,0 +1,11 @@
+[package]
+name = "loom-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loom FFI surface: the LoomComponent handle — dispatch, descriptor subscription, mount/unmount; nothing else."
+
+[dependencies]
+loom-machine = { path = "../loom-machine" }
+serde.workspace = true
+serde_json.workspace = true

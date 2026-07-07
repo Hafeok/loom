@@ -1,0 +1,25 @@
+# §2.4 completeness — the reification table rows with their context objects
+# (nodes, not strings), ready for the §7.1 leaf-completeness judge.
+# Bindings: $graph = loom:g/reification.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?aio_kind
+       ?platform_node ?platform_label
+       ?form_factor_node ?form_factor_label
+       ?interaction_class_node ?interaction_class_label
+       ?cio
+WHERE {
+  GRAPH $graph {
+    ?row rdf:type loom:ReificationRow ;
+         loom:aioKind ?aio_kind ;
+         loom:platform ?platform_node ;
+         loom:formFactor ?form_factor_node ;
+         loom:interactionClass ?interaction_class_node ;
+         loom:cio ?cio .
+    OPTIONAL { ?platform_node loom:label ?platform_label }
+    OPTIONAL { ?form_factor_node loom:label ?form_factor_label }
+    OPTIONAL { ?interaction_class_node loom:label ?interaction_class_label }
+  }
+}
+ORDER BY ?aio_kind ?platform_node

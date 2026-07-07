@@ -1,0 +1,16 @@
+[package]
+name = "loom-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Design-System CLI: bundle load, validation, inventory, and querying over the loom store."
+
+[[bin]]
+name = "loom"
+path = "src/main.rs"
+
+[dependencies]
+loom-graph = { path = "../loom-graph" }
+clap = { version = "4.4", features = ["derive"] }
+serde.workspace = true
+serde_json.workspace = true

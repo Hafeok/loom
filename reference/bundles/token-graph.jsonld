@@ -1,0 +1,36 @@
+{
+  "@graph": [
+    { "id": "token:color.blue.500", "type": "PrimitiveToken", "value": "#2563eb" },
+    { "id": "token:color.blue.600", "type": "PrimitiveToken", "value": "#1d4ed8" },
+    { "id": "token:color.white", "type": "PrimitiveToken", "value": "#ffffff" },
+    { "id": "token:color.gray.900", "type": "PrimitiveToken", "value": "#111827" },
+
+    { "id": "token:surface.interactive", "type": "SemanticToken",
+      "binds": "token:color.blue.500",
+      "discharges": "wcag-1.4.11-non-text-contrast" },
+    { "id": "token:surface.interactive-hover", "type": "SemanticToken",
+      "binds": "token:color.blue.600",
+      "discharges": "wcag-1.4.11-non-text-contrast" },
+    { "id": "token:text.on-interactive", "type": "SemanticToken",
+      "binds": "token:color.white",
+      "discharges": "wcag-1.4.3-contrast-minimum" },
+    { "id": "token:text.body", "type": "SemanticToken",
+      "binds": "token:color.gray.900",
+      "discharges": "wcag-1.4.3-contrast-minimum" },
+
+    { "id": "token:button.background", "type": "ComponentToken",
+      "binds": "token:surface.interactive", "component": "Ref.Button" },
+    { "id": "token:button.background-hover", "type": "ComponentToken",
+      "binds": "token:surface.interactive-hover", "component": "Ref.Button" },
+    { "id": "token:button.label", "type": "ComponentToken",
+      "binds": "token:text.on-interactive", "component": "Ref.Button" },
+    { "id": "token:listbox.trigger.background", "type": "ComponentToken",
+      "binds": "token:surface.interactive", "component": "Ref.Listbox" },
+    { "id": "token:picker-sheet.commit.background", "type": "ComponentToken",
+      "binds": "token:surface.interactive", "component": "Ref.PickerSheet" },
+    { "id": "token:menu-tui.highlight", "type": "ComponentToken",
+      "binds": "token:surface.interactive", "component": "Ref.MenuTUI" },
+    { "id": "token:form.label", "type": "ComponentToken",
+      "binds": "token:text.body", "component": "Ref.Form" }
+  ]
+}

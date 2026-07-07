@@ -1,0 +1,6 @@
+# Rust
+/target/
+# JS/TS (web + native shims, gallery, tools)
+node_modules/
+dist/
+*.tsbuildinfo

@@ -1,0 +1,37 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix loom: <http://loom.dev/ns#> .
+
+# e-motion-entry — loom-spec §5. An entry without a non-empty reduced-motion
+# fallback fails validation (WCAG 2.3.3): minCount rejects the missing field,
+# the \S pattern rejects empty and whitespace-only fallbacks.
+
+loom:MotionEntryShape
+    a sh:NodeShape ;
+    sh:targetClass loom:MotionEntry ;
+    sh:property [
+        sh:path loom:name ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:communicates ;
+        sh:minCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:duration ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:easing ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:reducedMotionFallback ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:pattern "\\S" ;
+    ] .

@@ -1,0 +1,42 @@
+{
+  "@graph": [
+    {
+      "id": "contract:single-select",
+      "type": "ModeContract",
+      "component": "single-select",
+      "event": ["data-arrived", "data-empty", "data-failed", "retry",
+                "trigger-activated", "option-committed", "dismissed", "arrow-key"],
+      "descriptorState": ["loading", "present", "empty", "failed", "closed", "open"],
+      "lifecycle": ["mount", "unmount"],
+      "consistencyStatus": "consistent"
+    },
+    {
+      "id": "contract:command",
+      "type": "ModeContract",
+      "component": "command",
+      "event": ["activated", "verdict-admitted", "verdict-rejected", "reset", "retry",
+                "focus-entered", "focus-left"],
+      "descriptorState": ["idle", "pending", "succeeded", "failed", "unfocused", "focused"],
+      "lifecycle": ["mount", "unmount"],
+      "consistencyStatus": "consistent"
+    },
+    {
+      "id": "contract:Ref.Screen",
+      "type": "ModeContract",
+      "component": "Ref.Screen",
+      "event": ["data-arrived", "data-failed", "retry"],
+      "descriptorState": ["loading", "present", "failed"],
+      "lifecycle": ["mount", "unmount"],
+      "consistencyStatus": "consistent"
+    },
+    {
+      "id": "contract:Ref.Form",
+      "type": "ModeContract",
+      "component": "Ref.Form",
+      "event": ["data-arrived", "data-failed", "retry"],
+      "descriptorState": ["loading", "present", "failed"],
+      "lifecycle": ["mount", "unmount"],
+      "consistencyStatus": "consistent"
+    }
+  ]
+}

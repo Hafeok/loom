@@ -1,0 +1,40 @@
+{
+  "@graph": [
+    {
+      "id": "motion:reveal-from-trigger",
+      "type": "MotionEntry",
+      "name": "reveal-from-trigger",
+      "communicates": "the transient surface originates at its trigger",
+      "duration": "180ms",
+      "easing": "ease-out",
+      "reducedMotionFallback": "instant"
+    },
+    {
+      "id": "motion:dismiss-to-trigger",
+      "type": "MotionEntry",
+      "name": "dismiss-to-trigger",
+      "communicates": "the transient surface returns to its trigger",
+      "duration": "140ms",
+      "easing": "ease-in",
+      "reducedMotionFallback": "instant"
+    },
+    {
+      "id": "motion:defer-expectation",
+      "type": "MotionEntry",
+      "name": "defer-expectation",
+      "communicates": "a verdict is pending, without implying determinate progress",
+      "duration": "600ms",
+      "easing": "linear",
+      "reducedMotionFallback": "static busy indicator"
+    },
+    {
+      "id": "motion:settle-in",
+      "type": "MotionEntry",
+      "name": "settle-in",
+      "communicates": "the value action landed",
+      "duration": "200ms",
+      "easing": "ease-out",
+      "reducedMotionFallback": "instant"
+    }
+  ]
+}

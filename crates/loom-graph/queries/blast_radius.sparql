@@ -1,0 +1,15 @@
+# §8 blast radius — every component whose tokens bind the given token,
+# directly or transitively through the resolution chain.
+# Bindings: $graph = loom:g/tokens, $token = the token IRI.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?component
+WHERE {
+  GRAPH $graph {
+    ?component_token rdf:type loom:ComponentToken ;
+                     loom:binds+ $token ;
+                     loom:component ?component .
+  }
+}
+ORDER BY ?component

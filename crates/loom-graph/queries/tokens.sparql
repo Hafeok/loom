@@ -1,0 +1,18 @@
+# e-token-graph rows — every token with its tier, binding, and owning component.
+# Bindings: $graph = loom:g/tokens.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?token ?tier ?binds ?component
+WHERE {
+  GRAPH $graph {
+    ?token rdf:type ?class .
+    VALUES (?class ?tier) {
+      (loom:PrimitiveToken "primitive")
+      (loom:SemanticToken  "semantic")
+      (loom:ComponentToken "component")
+    }
+    OPTIONAL { ?token loom:binds ?binds }
+    OPTIONAL { ?token loom:component ?component }
+  }
+}

@@ -1,0 +1,13 @@
+# Catalog record status for one bundle id — evolves the e-bundle decider state.
+# Bindings: $graph = loom:g/catalog, $bundle_id = the bundle path literal.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?shacl_status
+WHERE {
+  GRAPH $graph {
+    ?record rdf:type loom:BundleRecord ;
+            loom:bundleId $bundle_id ;
+            loom:shaclStatus ?shacl_status .
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "@graph": [
+    {
+      "id": "machine:single-select",
+      "type": "ComponentMachine",
+      "component": "single-select",
+      "projectionState": ["loading", "present", "empty", "failed"],
+      "transition": [
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-arrived", "toState": "present" },
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-empty", "toState": "empty" },
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-failed", "toState": "failed" },
+        { "type": "Transition", "layer": "projection", "fromState": "failed", "onEvent": "retry", "toState": "loading" }
+      ],
+      "overlay": {
+        "type": "InteractionOverlay",
+        "gatedOn": "present",
+        "overlayState": ["closed", "open"],
+        "transition": [
+          { "type": "Transition", "layer": "overlay", "fromState": "closed", "onEvent": "trigger-activated", "toState": "open",
+            "carriesMotion": "motion:reveal-from-trigger", "focusPostCondition": "first-option" },
+          { "type": "Transition", "layer": "overlay", "fromState": "open", "onEvent": "option-committed", "toState": "closed",
+            "carriesMotion": "motion:dismiss-to-trigger", "focusPostCondition": "trigger" },
+          { "type": "Transition", "layer": "overlay", "fromState": "open", "onEvent": "dismissed", "toState": "closed",
+            "carriesMotion": "motion:dismiss-to-trigger", "focusPostCondition": "trigger" },
+          { "type": "Transition", "layer": "overlay", "fromState": "open", "onEvent": "arrow-key", "toState": "open" }
+        ]
+      },
+      "keyboardBinding": [
+        { "type": "KeyboardBinding", "context": "Ref.Listbox", "event": "trigger-activated", "key": ["Space", "Enter", "click"] },
+        { "type": "KeyboardBinding", "context": "Ref.Listbox", "event": "arrow-key", "key": ["ArrowUp", "ArrowDown"] },
+        { "type": "KeyboardBinding", "context": "Ref.Listbox", "event": "option-committed", "key": ["Enter", "click"] },
+        { "type": "KeyboardBinding", "context": "Ref.Listbox", "event": "dismissed", "key": ["Escape", "click-outside", "blur"] },
+        { "type": "KeyboardBinding", "context": "Ref.PickerSheet", "event": "trigger-activated", "key": ["tap"] },
+        { "type": "KeyboardBinding", "context": "Ref.PickerSheet", "event": "arrow-key", "key": ["swipe"] },
+        { "type": "KeyboardBinding", "context": "Ref.PickerSheet", "event": "option-committed", "key": ["tap"] },
+        { "type": "KeyboardBinding", "context": "Ref.PickerSheet", "event": "dismissed", "key": ["swipe-down", "backdrop-tap"] },
+        { "type": "KeyboardBinding", "context": "Ref.MenuTUI", "event": "trigger-activated", "key": ["Enter"] },
+        { "type": "KeyboardBinding", "context": "Ref.MenuTUI", "event": "arrow-key", "key": ["j", "k", "ArrowUp", "ArrowDown"] },
+        { "type": "KeyboardBinding", "context": "Ref.MenuTUI", "event": "option-committed", "key": ["Enter"] },
+        { "type": "KeyboardBinding", "context": "Ref.MenuTUI", "event": "dismissed", "key": ["Escape", "q"] }
+      ]
+    }
+  ]
+}

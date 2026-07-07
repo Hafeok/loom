@@ -164,6 +164,11 @@
 ## Behaviour — the Decider oracle (your code must compute the same)
 
 ### Decider `e-bundle-decider` (decides for e-bundle)
+- a conformant token bundle loads into its named graph: given [], when cmd-load-bundle, then emit ["ev-bundle-loaded"]
+- an unknown artifact class is rejected fail-closed: given [], when cmd-load-bundle, then reject inv-known-artifact-class
+- a bundle without a source path is rejected: given [], when cmd-load-bundle, then reject inv-bundle-source-present
+- a previously rejected bundle may be re-loaded once fixed: given ["ev-bundle-rejected"], when cmd-load-bundle, then emit ["ev-bundle-loaded"]
+- re-loading the already-resident bundle is a rejected no-op: given ["ev-bundle-loaded"], when cmd-load-bundle, then reject inv-bundle-already-resident
 
 ---
 

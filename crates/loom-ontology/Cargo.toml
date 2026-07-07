@@ -1,0 +1,9 @@
+[package]
+name = "loom-ontology"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loom vocabulary constants and pinned JSON-LD contexts."
+
+[dependencies]
+serde_json.workspace = true

@@ -10,7 +10,7 @@ context:
   frozen: true
 produces:
   artifact: Maintained SPARQL assets for the §8 queries + oracle fact-gatherers
-  path: queries/
+  path: queries/blast-radius.rq
 trace:
   what: the §8 queryable surface
   behaviour: backs rm-blast-radius, rm-catalog-inventory, and every oracle's fact-gathering

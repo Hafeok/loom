@@ -1,0 +1,72 @@
+{
+  "description": "Encoding-neutral vectors for the e-bundle decider (cmd-load-bundle scenarios)",
+  "vectors": [
+    {
+      "id": "bundle-positive-conformant-load",
+      "description": "A conformant token bundle loads into its named graph",
+      "fixture": {
+        "type": "BundleDecider",
+        "given": [],
+        "command": { "bundle-path": "bundles/tokens.jsonld", "artifact-class": "tokens" }
+      },
+      "expected": {
+        "emit": [
+          { "event": "ev-bundle-loaded", "bundle-id": "bundles/tokens.jsonld",
+            "artifact-class": "tokens", "named-graph": "loom:g/tokens" }
+        ]
+      }
+    },
+    {
+      "id": "bundle-negative-unknown-artifact-class",
+      "description": "An unknown artifact class is rejected fail-closed",
+      "fixture": {
+        "type": "BundleDecider",
+        "given": [],
+        "command": { "bundle-path": "bundles/styles.jsonld", "artifact-class": "styles" }
+      },
+      "expected": { "reject": "inv-known-artifact-class" }
+    },
+    {
+      "id": "bundle-negative-missing-source",
+      "description": "A bundle without a source path is rejected",
+      "fixture": {
+        "type": "BundleDecider",
+        "given": [],
+        "command": { "bundle-path": "", "artifact-class": "tokens" }
+      },
+      "expected": { "reject": "inv-bundle-source-present" }
+    },
+    {
+      "id": "bundle-positive-reload-after-rejection",
+      "description": "A previously rejected bundle may be re-loaded once fixed",
+      "fixture": {
+        "type": "BundleDecider",
+        "given": [
+          { "event": "ev-bundle-rejected", "bundle-id": "bundles/machines.jsonld",
+            "artifact-class": "machines",
+            "shacl-violations": "sh:MinCountConstraintComponent on loom:onEvent" }
+        ],
+        "command": { "bundle-path": "bundles/machines.jsonld", "artifact-class": "machines" }
+      },
+      "expected": {
+        "emit": [
+          { "event": "ev-bundle-loaded", "bundle-id": "bundles/machines.jsonld",
+            "artifact-class": "machines", "named-graph": "loom:g/machines" }
+        ]
+      }
+    },
+    {
+      "id": "bundle-negative-already-resident",
+      "description": "Re-loading the already-resident bundle is a rejected no-op",
+      "fixture": {
+        "type": "BundleDecider",
+        "given": [
+          { "event": "ev-bundle-loaded", "bundle-id": "bundles/tokens.jsonld",
+            "artifact-class": "tokens", "named-graph": "loom:g/tokens" }
+        ],
+        "command": { "bundle-path": "bundles/tokens.jsonld", "artifact-class": "tokens" }
+      },
+      "expected": { "reject": "inv-bundle-already-resident" }
+    }
+  ]
+}

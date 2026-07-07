@@ -1,0 +1,19 @@
+# e-mode-contract surfaces — one row per (component, surface item).
+# Bindings: $graph = loom:g/mode-contracts.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?component ?event ?descriptor_state ?lifecycle
+WHERE {
+  GRAPH $graph {
+    ?contract rdf:type loom:ModeContract ;
+              loom:component ?component .
+    {
+      ?contract loom:event ?event .
+    } UNION {
+      ?contract loom:descriptorState ?descriptor_state .
+    } UNION {
+      ?contract loom:lifecycle ?lifecycle .
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "@graph": [
+    {
+      "id": "machine:Ref.Screen",
+      "type": "ComponentMachine",
+      "component": "Ref.Screen",
+      "container": true,
+      "projectionState": ["loading", "present", "failed"],
+      "transition": [
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-arrived", "toState": "present" },
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-failed", "toState": "failed" },
+        { "type": "Transition", "layer": "projection", "fromState": "failed", "onEvent": "retry", "toState": "loading" }
+      ],
+      "slot": ["main"]
+    },
+    {
+      "id": "machine:Ref.Form",
+      "type": "ComponentMachine",
+      "component": "Ref.Form",
+      "container": true,
+      "projectionState": ["loading", "present", "failed"],
+      "transition": [
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-arrived", "toState": "present" },
+        { "type": "Transition", "layer": "projection", "fromState": "loading", "onEvent": "data-failed", "toState": "failed" },
+        { "type": "Transition", "layer": "projection", "fromState": "failed", "onEvent": "retry", "toState": "loading" }
+      ],
+      "slot": ["fields", "submit"]
+    }
+  ]
+}

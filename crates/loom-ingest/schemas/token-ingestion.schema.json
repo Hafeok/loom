@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loom.dev/schemas/token-ingestion.schema.json",
+  "title": "Token ingestion mapping",
+  "description": "The pinned seam contract for cmd-ingest-palette: every mapping submitted at the boundary is validated against this version (p-seam-schema-validated).",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["role", "external_token", "target_primitive"],
+    "properties": {
+      "role": { "type": "string", "minLength": 1 },
+      "external_token": { "type": "string", "minLength": 1 },
+      "target_primitive": { "type": "string" },
+      "semantic_intermediate": { "type": ["string", "null"] }
+    },
+    "additionalProperties": false
+  }
+}

@@ -1,0 +1,13 @@
+[package]
+name = "loom-ingest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loom §2.5 ingestion gate: seam-validated palette mappings, token-tier criteria re-run, fail-closed."
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+jsonschema = { version = "0.46", default-features = false }
+tracing = "0.1"

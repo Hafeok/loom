@@ -1,0 +1,20 @@
+# e-machine surfaces — each machine's input alphabet and state range
+# (projection states plus overlay states). Bindings: $graph = loom:g/machines.
+PREFIX loom: <http://loom.dev/ns#>
+PREFIX rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?component ?event ?state
+WHERE {
+  GRAPH $graph {
+    ?machine rdf:type loom:ComponentMachine ;
+             loom:component ?component .
+    {
+      ?machine (loom:transition|loom:overlay/loom:transition) ?transition .
+      ?transition loom:onEvent ?event .
+    } UNION {
+      ?machine loom:projectionState ?state .
+    } UNION {
+      ?machine loom:overlay/loom:overlayState ?state .
+    }
+  }
+}

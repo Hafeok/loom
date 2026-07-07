@@ -1,0 +1,50 @@
+{
+  "@graph": [
+    {
+      "id": "machine:command",
+      "type": "ComponentMachine",
+      "component": "command",
+      "projectionState": ["idle", "pending", "succeeded", "failed"],
+      "stateSource": "domain-verdict",
+      "transition": [
+        { "type": "Transition", "layer": "projection", "fromState": "idle", "onEvent": "activated", "toState": "pending",
+          "carriesMotion": "motion:defer-expectation" },
+        { "type": "Transition", "layer": "projection", "fromState": "pending", "onEvent": "verdict-admitted", "toState": "succeeded",
+          "carriesMotion": "motion:settle-in" },
+        { "type": "Transition", "layer": "projection", "fromState": "pending", "onEvent": "verdict-rejected", "toState": "failed",
+          "carriesMotion": "motion:settle-in" },
+        { "type": "Transition", "layer": "projection", "fromState": "succeeded", "onEvent": "reset", "toState": "idle" },
+        { "type": "Transition", "layer": "projection", "fromState": "failed", "onEvent": "retry", "toState": "pending",
+          "carriesMotion": "motion:defer-expectation" },
+        { "type": "Transition", "layer": "projection", "fromState": "failed", "onEvent": "reset", "toState": "idle" }
+      ],
+      "gate": { "type": "Gate", "name": "disabled", "blocks": "activated" },
+      "overlay": {
+        "type": "InteractionOverlay",
+        "gatedOn": "any",
+        "overlayState": ["unfocused", "focused"],
+        "transition": [
+          { "type": "Transition", "layer": "overlay", "fromState": "unfocused", "onEvent": "focus-entered", "toState": "focused" },
+          { "type": "Transition", "layer": "overlay", "fromState": "focused", "onEvent": "focus-left", "toState": "unfocused" }
+        ]
+      },
+      "keyboardBinding": [
+        { "type": "KeyboardBinding", "context": "Ref.Button", "event": "activated", "key": ["Space", "Enter", "click"] },
+        { "type": "KeyboardBinding", "context": "Ref.Button", "event": "focus-entered", "key": ["Tab"] },
+        { "type": "KeyboardBinding", "context": "Ref.Button", "event": "focus-left", "key": ["Shift+Tab", "blur"] },
+        { "type": "KeyboardBinding", "context": "Ref.Button", "event": "reset", "key": ["programmatic"] },
+        { "type": "KeyboardBinding", "context": "Ref.Button", "event": "retry", "key": ["Space", "Enter", "click"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTouch", "event": "activated", "key": ["tap"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTouch", "event": "focus-entered", "key": ["focus"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTouch", "event": "focus-left", "key": ["blur"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTouch", "event": "reset", "key": ["programmatic"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTouch", "event": "retry", "key": ["tap"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTUI", "event": "activated", "key": ["Enter"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTUI", "event": "focus-entered", "key": ["Tab"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTUI", "event": "focus-left", "key": ["Shift+Tab"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTUI", "event": "reset", "key": ["programmatic"] },
+        { "type": "KeyboardBinding", "context": "Ref.ButtonTUI", "event": "retry", "key": ["Enter"] }
+      ]
+    }
+  ]
+}

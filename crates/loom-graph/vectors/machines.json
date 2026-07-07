@@ -1,0 +1,59 @@
+{
+  "description": "Encoding-neutral vectors for machine-catalog validation (e-machine shapes)",
+  "vectors": [
+    {
+      "id": "machines-positive-minimal",
+      "description": "A machine with a component, projection states, and complete transitions — admitted",
+      "fixture": {
+        "artifact_class": "machines",
+        "graph": [
+          {
+            "id": "machine:toggle",
+            "type": "ComponentMachine",
+            "component": "toggle",
+            "projectionState": ["off", "on"],
+            "transition": [
+              { "type": "Transition", "fromState": "off", "onEvent": "toggled", "toState": "on" },
+              { "type": "Transition", "fromState": "on", "onEvent": "toggled", "toState": "off" }
+            ]
+          }
+        ]
+      },
+      "expected": { "shacl_passes": true }
+    },
+    {
+      "id": "machines-negative-transition-without-event",
+      "description": "A transition with no onEvent — sh:MinCountConstraintComponent on loom:onEvent",
+      "fixture": {
+        "artifact_class": "machines",
+        "graph": [
+          {
+            "id": "machine:broken",
+            "type": "ComponentMachine",
+            "component": "broken",
+            "projectionState": ["a", "b"],
+            "transition": [
+              { "type": "Transition", "fromState": "a", "toState": "b" }
+            ]
+          }
+        ]
+      },
+      "expected": { "shacl_passes": false }
+    },
+    {
+      "id": "machines-negative-anonymous-machine",
+      "description": "A machine with no component identity — rejected",
+      "fixture": {
+        "artifact_class": "machines",
+        "graph": [
+          {
+            "id": "machine:anonymous",
+            "type": "ComponentMachine",
+            "projectionState": ["a"]
+          }
+        ]
+      },
+      "expected": { "shacl_passes": false }
+    }
+  ]
+}

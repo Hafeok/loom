@@ -1,0 +1,103 @@
+{
+  "description": "Encoding-neutral vectors for motion entry validation and §7.6 motion check",
+  "vectors": [
+    {
+      "id": "motion-positive-entry",
+      "description": "A valid motion entry with all fields populated and a non-empty reduced-motion fallback",
+      "fixture": {
+        "type": "MotionEntry",
+        "name": "fade-in",
+        "communicates": "arrival",
+        "duration": "200ms",
+        "easing": "ease-out",
+        "reduced_motion_fallback": "instant"
+      },
+      "expected": {
+        "shacl_passes": true,
+        "wcag_2_3_3": true
+      }
+    },
+    {
+      "id": "motion-negative-empty-fallback",
+      "description": "A motion entry whose reduced-motion fallback is empty — fails WCAG 2.3.3 and SHACL",
+      "fixture": {
+        "type": "MotionEntry",
+        "name": "no-motion",
+        "communicates": "state-change",
+        "duration": "0ms",
+        "easing": "none",
+        "reduced_motion_fallback": ""
+      },
+      "expected": {
+        "shacl_passes": false,
+        "wcag_2_3_3": false
+      }
+    },
+    {
+      "id": "motion-negative-whitespace-fallback",
+      "description": "A motion entry whose reduced-motion fallback is only whitespace — treated as empty",
+      "fixture": {
+        "type": "MotionEntry",
+        "name": "whitespace-fail",
+        "communicates": "transition",
+        "duration": "150ms",
+        "easing": "linear",
+        "reduced_motion_fallback": "   "
+      },
+      "expected": {
+        "shacl_passes": false,
+        "wcag_2_3_3": false
+      }
+    },
+    {
+      "id": "motion-positive-references",
+      "description": "A machine transition that carries motion referencing an existing entry — valid",
+      "fixture": {
+        "motion_entries": [
+          { "name": "slide-left", "communicates": "dismissal", "duration": "300ms", "easing": "ease-in-out", "reduced_motion_fallback": "instant" }
+        ],
+        "transitions": [
+          { "component": "Drawer", "carries_motion": "slide-left" }
+        ]
+      },
+      "expected": {
+        "motion_check_passes": true,
+        "dangling_references": []
+      }
+    },
+    {
+      "id": "motion-negative-dangling-reference",
+      "description": "A machine transition whose carriesMotion references a motion entry that does not exist — incoherence",
+      "fixture": {
+        "motion_entries": [
+          { "name": "fade-in", "communicates": "arrival", "duration": "200ms", "easing": "ease-out", "reduced_motion_fallback": "instant" }
+        ],
+        "transitions": [
+          { "component": "Tooltip", "carries_motion": "zoom-out" }
+        ]
+      },
+      "expected": {
+        "motion_check_passes": false,
+        "dangling_references": [
+          { "component": "Tooltip", "referenced_motion": "zoom-out" }
+        ]
+      }
+    },
+    {
+      "id": "motion-positive-no-motion-transition",
+      "description": "A machine transition with no carriesMotion declared — valid (non-motion transition declares none explicitly)",
+      "fixture": {
+        "motion_entries": [
+          { "name": "instant", "communicates": "immediate", "duration": "0ms", "easing": "none", "reduced_motion_fallback": "instant" }
+        ],
+        "transitions": [
+          { "component": "Checkbox", "carries_motion": null }
+        ]
+      },
+      "expected": {
+        "motion_check_passes": true,
+        "dangling_references": []
+      }
+    }
+  ]
+}

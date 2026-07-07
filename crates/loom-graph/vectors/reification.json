@@ -1,0 +1,40 @@
+{
+  "description": "Encoding-neutral vectors for reification-table validation and the exactly-once oracle (§3.1–3.2)",
+  "vectors": [
+    {
+      "id": "reification-positive-responsive-rows",
+      "description": "The same AIO kind bound in two contexts — how one composition adapts responsively without forking",
+      "fixture": {
+        "type": "ReificationTable",
+        "rows": [
+          { "aio_kind": "single-select", "platform": "web", "form_factor": "desktop", "interaction_class": "gui", "cio": "Ref.Listbox" },
+          { "aio_kind": "single-select", "platform": "ios", "form_factor": "handset", "interaction_class": "touch", "cio": "Ref.PickerSheet" }
+        ]
+      },
+      "expected": { "shacl_passes": true, "unambiguous": true }
+    },
+    {
+      "id": "reification-negative-ambiguous-pair",
+      "description": "Two rows matching the same (AIO-kind, platform, form-factor, interaction-class) — ambiguity fails validation",
+      "fixture": {
+        "type": "ReificationTable",
+        "rows": [
+          { "aio_kind": "single-select", "platform": "web", "form_factor": "desktop", "interaction_class": "gui", "cio": "Ref.Listbox" },
+          { "aio_kind": "single-select", "platform": "web", "form_factor": "desktop", "interaction_class": "gui", "cio": "Ref.Dropdown" }
+        ]
+      },
+      "expected": { "shacl_passes": true, "unambiguous": false }
+    },
+    {
+      "id": "reification-negative-missing-cio",
+      "description": "A row with no component — rejected by the shape",
+      "fixture": {
+        "type": "ReificationTable",
+        "rows": [
+          { "aio_kind": "single-select", "platform": "web", "form_factor": "desktop", "interaction_class": "gui" }
+        ]
+      },
+      "expected": { "shacl_passes": false, "unambiguous": true }
+    }
+  ]
+}

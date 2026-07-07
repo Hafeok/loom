@@ -1,0 +1,12 @@
+[package]
+name = "loom-reify"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Loom reification seam: canonical UIIntent in, canonical ReificationReport out, PROV-O run recording."
+
+[dependencies]
+loom-graph = { path = "../loom-graph" }
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true

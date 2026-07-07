@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/loom-ontology",
+    "crates/loom-graph",
+    "crates/loom-machine",
+    "crates/loom-ingest",
+    "crates/loom-oracles",
+    "crates/loom-reify",
+    "crates/loom-ffi",
+    "crates/loom-wasm",
+    "crates/loom-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+regex = "1.10"
+oxigraph = { version = "0.5", default-features = false }

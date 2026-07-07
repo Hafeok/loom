@@ -1,0 +1,202 @@
+{
+  "deliverable": "d1-graph-core",
+  "elapsed_secs": 5765,
+  "calls": [
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3109,
+      "completion_tokens": 7237
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3070,
+      "completion_tokens": 10231
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3113,
+      "completion_tokens": 8192
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3079,
+      "completion_tokens": 6794
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3084,
+      "completion_tokens": 9588
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3100,
+      "completion_tokens": 5911
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3058,
+      "completion_tokens": 5006
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3076,
+      "completion_tokens": 9567
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3103,
+      "completion_tokens": 11270
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3059,
+      "completion_tokens": 4331
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3081,
+      "completion_tokens": 10446
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3112,
+      "completion_tokens": 8080
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3085,
+      "completion_tokens": 11969
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3053,
+      "completion_tokens": 3202
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3117,
+      "completion_tokens": 7113
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3056,
+      "completion_tokens": 5348
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3071,
+      "completion_tokens": 6713
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3065,
+      "completion_tokens": 2201
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3070,
+      "completion_tokens": 9427
+    },
+    {
+      "capability": "kiln-coder-light",
+      "gate": "dispatch",
+      "prompt_tokens": 3074,
+      "completion_tokens": 9549
+    },
+    {
+      "capability": "claude-code",
+      "gate": "verify",
+      "prompt_tokens": 0,
+      "completion_tokens": 0
+    }
+  ],
+  "files": [
+    {
+      "path": "apps/loom-web-react-gallery/src/main.tsx",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-cli/src/main.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-graph/src/bundle.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-graph/src/mode_contracts.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-graph/src/motion.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-graph/src/reification_table.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-graph/src/tokens.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-ingest/src/gate.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-machine/src/instance.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-oracles/src/lib.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-reify/src/run.rs",
+      "status": "new"
+    },
+    {
+      "path": "crates/loom-wasm/src/lib.rs",
+      "status": "new"
+    },
+    {
+      "path": "packages/loom-web/src/shim.ts",
+      "status": "new"
+    },
+    {
+      "path": "tools/adapter-fidelity-ts/src/scan.ts",
+      "status": "new"
+    }
+  ],
+  "verdict": {
+    "done": false,
+    "passing": 18,
+    "total": 19
+  },
+  "spec_depth": {
+    "nodes": 0,
+    "depth": 0,
+    "acceptance": 0,
+    "deciders": 0,
+    "context_tokens": 0
+  }
+}

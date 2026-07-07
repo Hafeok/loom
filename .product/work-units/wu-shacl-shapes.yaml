@@ -10,7 +10,7 @@ context:
   frozen: true
 produces:
   artifact: SHACL shapes per artifact class + vector assertions
-  path: shapes/
+  path: shapes/machines.shacl.ttl
 trace:
   what: ctx-catalog load gate
   behaviour: cmd-load-bundle validates against these on every load — ev-bundle-rejected carries their reports

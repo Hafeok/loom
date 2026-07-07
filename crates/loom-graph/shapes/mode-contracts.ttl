@@ -1,0 +1,29 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix loom: <http://loom.dev/ns#> .
+
+# e-mode-contract — the three adapter surfaces (loom-implementation §3.4).
+# Presence is gated here; consistency with the core machine (no phantom
+# events, no unreported states) is the Rust oracle.
+
+loom:ModeContractShape
+    a sh:NodeShape ;
+    sh:targetClass loom:ModeContract ;
+    sh:property [
+        sh:path loom:component ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:event ;
+        sh:minCount 1 ;
+        sh:minLength 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:descriptorState ;
+        sh:minCount 1 ;
+    ] ;
+    sh:property [
+        sh:path loom:lifecycle ;
+        sh:minCount 2 ;
+    ] .

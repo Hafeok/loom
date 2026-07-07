@@ -1,0 +1,16 @@
+{
+  "@context": {
+    "@vocab": "http://loom.dev/ns#",
+    "loom": "http://loom.dev/ns#",
+    "token": "http://loom.dev/token/",
+    "motion": "http://loom.dev/motion/",
+    "machine": "http://loom.dev/machine/",
+    "row": "http://loom.dev/row/",
+    "contract": "http://loom.dev/contract/",
+    "ctx": "http://loom.dev/context/",
+    "id": "@id",
+    "type": "@type",
+    "binds": { "@id": "http://loom.dev/ns#binds", "@type": "@id" },
+    "carriesMotion": { "@id": "http://loom.dev/ns#carriesMotion", "@type": "@id" }
+  }
+}

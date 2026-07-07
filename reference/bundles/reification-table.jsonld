@@ -1,0 +1,39 @@
+{
+  "@graph": [
+    { "id": "ctx:web", "label": "Web" },
+    { "id": "ctx:ios", "label": "iOS" },
+    { "id": "ctx:terminal", "label": "Terminal" },
+    { "id": "ctx:desktop", "label": "Desktop" },
+    { "id": "ctx:handset", "label": "Handset" },
+    { "id": "ctx:tty", "label": "TTY" },
+    { "id": "ctx:gui", "label": "GUI" },
+    { "id": "ctx:touch", "label": "Touch" },
+    { "id": "ctx:keyboard", "label": "Keyboard" },
+
+    { "id": "row:single-select.web.desktop.gui", "type": "ReificationRow",
+      "aioKind": "single-select",
+      "platform": { "id": "ctx:web" }, "formFactor": { "id": "ctx:desktop" },
+      "interactionClass": { "id": "ctx:gui" }, "cio": "Ref.Listbox" },
+    { "id": "row:single-select.ios.handset.touch", "type": "ReificationRow",
+      "aioKind": "single-select",
+      "platform": { "id": "ctx:ios" }, "formFactor": { "id": "ctx:handset" },
+      "interactionClass": { "id": "ctx:touch" }, "cio": "Ref.PickerSheet" },
+    { "id": "row:single-select.terminal.tty.keyboard", "type": "ReificationRow",
+      "aioKind": "single-select",
+      "platform": { "id": "ctx:terminal" }, "formFactor": { "id": "ctx:tty" },
+      "interactionClass": { "id": "ctx:keyboard" }, "cio": "Ref.MenuTUI" },
+
+    { "id": "row:command.web.desktop.gui", "type": "ReificationRow",
+      "aioKind": "command",
+      "platform": { "id": "ctx:web" }, "formFactor": { "id": "ctx:desktop" },
+      "interactionClass": { "id": "ctx:gui" }, "cio": "Ref.Button" },
+    { "id": "row:command.ios.handset.touch", "type": "ReificationRow",
+      "aioKind": "command",
+      "platform": { "id": "ctx:ios" }, "formFactor": { "id": "ctx:handset" },
+      "interactionClass": { "id": "ctx:touch" }, "cio": "Ref.ButtonTouch" },
+    { "id": "row:command.terminal.tty.keyboard", "type": "ReificationRow",
+      "aioKind": "command",
+      "platform": { "id": "ctx:terminal" }, "formFactor": { "id": "ctx:tty" },
+      "interactionClass": { "id": "ctx:keyboard" }, "cio": "Ref.ButtonTUI" }
+  ]
+}
